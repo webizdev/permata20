@@ -1,44 +1,50 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
-
-serve(async (req: Request) => {
-  const url = new URL(req.url)
-  const productId = url.searchParams.get('p')
+export default async function handler(req, res) {
+  const productId = req.query.p;
 
   if (!productId) {
-    return Response.redirect('https://permata20.vercel.app/', 302)
+    res.redirect(302, '/');
+    return;
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  
-  const [productRes, settingsRes] = await Promise.all([
-    supabase.from('p20_products').select('name, price, image_url').eq('id', productId).single(),
-    supabase.from('p20_settings').select('value').eq('key', 'store_identity').single()
-  ])
+  const SUPABASE_URL = 'https://uavwpmvpxgckrnubnqex.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_fOqPQgsbckJR9PzYV20uZQ_fIwIzU4h';
 
-  const product = productRes.data
-  const storeName = settingsRes.data?.value?.name || "Permata 20"
+  const defaultHeaders = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`
+  };
 
-  if (!product) {
-    return Response.redirect('https://permata20.vercel.app/', 302)
-  }
+  try {
+    const [productRes, settingsRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/p20_products?id=eq.${productId}&select=name,price,image_url`, { headers: defaultHeaders }),
+      fetch(`${SUPABASE_URL}/rest/v1/p20_settings?key=eq.store_identity&select=value`, { headers: defaultHeaders })
+    ]);
 
-  const formatPrice = (val: number) => {
-    return "Rp " + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
-  }
+    const products = await productRes.json();
+    const settings = await settingsRes.json();
 
-  const imageUrl = product.image_url;
-  // If image URL doesn't end with .jpg/.png/.jpeg etc., some platforms won't show the thumbnail.
-  // We can't change the actual image URL easily if it's external, but we can append an anchor #.jpg or ?.jpg
-  // Actually, appending ?.jpg is a common trick to fool regex parsers in social media bots.
-  const ogImageUrl = imageUrl.includes('.jpg') || imageUrl.includes('.png') || imageUrl.includes('.jpeg') 
-    ? imageUrl 
-    : `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}ext=.jpg`;
+    const product = products && products.length > 0 ? products[0] : null;
 
-  const html = `<!DOCTYPE html>
+    if (!product) {
+      res.redirect(302, '/');
+      return;
+    }
+
+    let storeName = "Permata 20";
+    if (settings && settings.length > 0 && settings[0].value && settings[0].value.name) {
+      storeName = settings[0].value.name;
+    }
+
+    const formatPrice = (val) => {
+      return "Rp " + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    const imageUrl = product.image_url;
+    const ogImageUrl = imageUrl.includes('.jpg') || imageUrl.includes('.png') || imageUrl.includes('.jpeg') 
+      ? imageUrl 
+      : `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}ext=.jpg`;
+
+    const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -47,7 +53,7 @@ serve(async (req: Request) => {
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${req.url}">
+    <meta property="og:url" content="https://permata20.vercel.app/p/${productId}">
     <meta property="og:title" content="${product.name} - ${storeName}">
     <meta property="og:description" content="Temukan ${product.name} seharga ${formatPrice(product.price)} hanya di ${storeName}. Klik untuk detail produk!">
     <meta property="og:image" content="${ogImageUrl}">
@@ -74,13 +80,12 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-  const headers = new Headers();
-  headers.set("Content-Type", "text/html; charset=utf-8");
-  headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("Cache-Control", "public, max-age=60");
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+    res.status(200).send(html);
 
-  return new Response(html, {
-    status: 200,
-    headers: headers
-  })
-})
+  } catch (err) {
+    console.error(err);
+    res.redirect(302, '/');
+  }
+}
