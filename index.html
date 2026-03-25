@@ -1057,18 +1057,20 @@
                 },
 
                 shareProduct(product) {
-                    const text = `Cek produk keren ini di ${this.settings.name || 'UMKM Permata 20'}: ${product.name} - ${this.formatPrice(product.price)}`;
+                    const storeName = this.settings.name || 'Permata 20';
+                    const text = `*${product.name}*\n\nDapatkan ${product.name} seharga ${this.formatPrice(product.price)} hanya di ${storeName}.\n\nCek detail produk di sini:`;
+                    
                     // Use Supabase Edge Function URL for dynamic social thumbnails
                     const shareUrl = `https://uavwpmvpxgckrnubnqex.functions.supabase.co/share-product?p=${product.id}`;
 
                     if (navigator.share) {
                         navigator.share({
-                            title: product.name,
+                            title: `${product.name} - ${storeName}`,
                             text: text,
                             url: shareUrl
                         }).catch(err => console.log('Error sharing', err));
                     } else {
-                        const waUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + shareUrl)}`;
+                        const waUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n' + shareUrl)}`;
                         window.open(waUrl, '_blank');
                     }
                 },
