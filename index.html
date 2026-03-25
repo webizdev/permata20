@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="id" x-data="shopApp()">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO & Metadata -->
+    <title x-text="settings.name ? settings.name + ' | Digital Catalog' : 'UMKM Permata 20 | Digital Catalog 2026'"></title>
+    <meta name="description" content="Katalog Digital UMKM Permata 20 - Temukan produk unggulan modern Indonesia craft terbaik kami.">
+    <meta name="keywords" content="UMKM, Permata 20, Indonesia Craft, Katalog Digital, Produk Lokal">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" :content="settings.name || 'UMKM Permata 20'">
+    <meta property="og:description" content="Katalog Digital UMKM Permata 20 - Modern Indonesian Craft.">
+    <meta property="og:image" content="https://uavwpmvpxgckrnubnqex.supabase.co/storage/v1/object/public/p20_images/logo.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z'/></svg>">
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #ec4899;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        /* Premium Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .dark-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animated Gradients */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-flow 5s ease infinite;
+        }
+
+        @keyframes gradient-flow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Floating Animation */
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        /* Product Card Enhancements */
+        .product-card {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        .product-img {
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .product-card:hover .product-img {
+            transform: scale(1.1);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Loader Animation */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 antialiased overflow-x-hidden" x-init="initApp()">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass border-b border-slate-200/50">
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-2 group cursor-pointer" @click="window.scrollTo(0, 0)">
+                <div
+                    class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:rotate-12 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight">
+                    <span x-text="settings.name ? settings.name.split(' ')[0] : 'Permata'"></span>
+                    <span class="gradient-text"
+                        x-text="settings.name ? settings.name.split(' ').slice(1).join(' ') : '20'"></span>
+                </h1>
+            </div>
+
+            <div class="flex items-center space-x-6">
+                <button @click="cartOpen = true"
+                    class="relative p-2 text-slate-600 hover:text-indigo-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <span x-show="cart.length > 0" x-text="cartTotalItems"
+                        class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white animate-bounce"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="pt-24 md:pt-32 pb-12 md:pb-16 px-6 overflow-hidden relative">
+        <div class="container mx-auto">
+            <div class="flex flex-col lg:flex-row items-center gap-6 md:gap-12">
+                <div class="w-full lg:w-1/2 space-y-6 md:space-y-8" x-data="{ loaded: false }"
+                    x-init="setTimeout(() => loaded = true, 100)">
+                    <div x-show="loaded" x-transition:enter="transition ease-out duration-1000"
+                        x-transition:enter-start="opacity-0 translate-y-8"
+                        class="inline-block px-3 py-1 bg-indigo-50 rounded-full text-indigo-600 font-semibold text-xs md:text-sm tracking-wide border border-indigo-100 uppercase">
+                        EST. 2024 • <span x-text="cms.hero.intro || settings.tagline || 'MODERN CRAFT'"></span>
+                    </div>
+                    <h2 x-show="loaded" x-transition:enter="transition ease-out duration-1000 delay-150"
+                        class="text-4xl md:text-7xl font-extrabold leading-tight">
+                        <span x-html="cms.hero.title || 'Ekspresikan <br> <span class=\'gradient-text\'>Gayamu</span> Sendiri'"></span>
+                    </h2>
+                    <p x-show="loaded" x-transition:enter="transition ease-out duration-1000 delay-300"
+                        class="text-base md:text-lg text-slate-600 max-w-xl leading-relaxed"
+                        x-text="cms.hero.subtitle || 'Koleksi eksklusif aksesoris fashion, kerajinan tangan, dan kuliner nusantara pilihan terbaik bangsa.'">
+                    </p>
+                    <div x-show="loaded" x-transition:enter="transition ease-out duration-1000 delay-450"
+                        class="flex flex-wrap gap-3 md:gap-4">
+                        <a href="#produk"
+                            class="px-6 py-3 md:px-8 md:py-4 bg-slate-900 text-white rounded-xl md:rounded-2xl font-bold hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200 active:scale-95"
+                            x-text="cms.hero.cta_text || 'Belanja Now'"></a>
+                        <a href="#tentang"
+                            class="px-6 py-3 md:px-8 md:py-4 bg-white border border-slate-200 rounded-xl md:rounded-2xl font-bold hover:bg-slate-50 transition-all active:scale-95 text-sm md:text-base">Tentang Kami</a>
+                    </div>
+                </div>
+                <div class="w-full lg:w-1/2 relative" x-data="{ 
+                    activeHero: 0, 
+                    init() {
+                        setInterval(() => {
+                            if (cms.hero?.images?.length > 0) {
+                                this.activeHero = (this.activeHero + 1) % cms.hero.images.length;
+                            }
+                        }, cms.sliders?.hero?.speed || 5000);
+                    }
+                }">
+                    <div class="relative z-10 rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700 floating aspect-[4/3] md:aspect-auto">
+                        <template x-for="(img, index) in cms.hero.images" :key="index">
+                            <img :src="img" x-show="activeHero === index" 
+                                :x-transition:enter="cms.sliders?.hero?.mode === 'fade' ? 'transition ease-out duration-1000' : 'transition ease-out duration-1000'"
+                                x-transition:enter-start="opacity-0 scale-105"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-1000 absolute inset-0"
+                                x-transition:leave-start="opacity-100"
+                                x-transition:leave-end="opacity-0"
+                                class="w-full h-[300px] md:h-[500px] object-cover">
+                        </template>
+                        
+                        <!-- Mini Indicators -->
+                        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
+                            <template x-for="(img, index) in cms.hero.images" :key="index">
+                                <div @click="activeHero = index" 
+                                    :class="activeHero === index ? 'w-8 bg-white' : 'w-2 bg-white/40'"
+                                    class="h-1.5 rounded-full transition-all duration-500 cursor-pointer"></div>
+                            </template>
+                        </div>
+                    </div>
+                    <div
+                        class="absolute -top-10 -right-10 w-48 h-48 md:w-64 md:h-64 bg-purple-200 rounded-full blur-3xl opacity-50 -z-10 animate-pulse">
+                    </div>
+                    <div
+                        class="absolute -bottom-10 -left-10 w-48 h-48 md:w-64 md:h-64 bg-indigo-200 rounded-full blur-3xl opacity-50 -z-10">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Categories & Filter -->
+    <section id="produk" class="py-12 md:py-20 px-6">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 md:mb-12 gap-4 md:gap-6">
+                <div x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 500)">
+                    <h3 class="text-2xl md:text-3xl font-bold" x-show="loaded" x-transition:enter="transition ease-out duration-700"
+                        x-transition:enter-start="opacity-0 -translate-x-8">Koleksi Kami</h3>
+                    <p class="text-slate-500 text-sm md:text-base mt-1 md:mt-2" x-show="loaded"
+                        x-transition:enter="transition ease-out duration-700 delay-100"
+                        x-transition:enter-start="opacity-0 -translate-x-8">Produk terbaik pilihan <span
+                            x-text="settings.name || 'P20'"></span></p>
+                </div>
+
+                <div class="flex overflow-x-auto pb-2 md:pb-4 gap-1.5 md:gap-2 scrollbar-hide">
+                    <button @click="activeCategory = 'all'"
+                        :class="activeCategory === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'"
+                        class="px-4 py-2 md:px-6 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-base whitespace-nowrap transition-all duration-300">
+                        Semua
+                    </button>
+                    <template x-for="cat in categories" :key="cat.id">
+                        <button @click="activeCategory = cat.id"
+                            :class="activeCategory === cat.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'"
+                            class="px-4 py-2 md:px-6 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-base whitespace-nowrap transition-all duration-300"
+                            x-text="cat.name"></button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div x-show="loading" class="flex flex-col items-center justify-center py-20 space-y-4">
+                <div class="loader"></div>
+                <p class="text-slate-500 animate-pulse font-medium">Memuat katalog...</p>
+            </div>
+
+            <div x-show="!loading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+                <template x-for="product in filteredProducts" :key="product.id">
+                    <div
+                        class="product-card group bg-white rounded-2xl md:rounded-[2rem] p-3 md:p-5 border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500">
+                        <div
+                            class="relative aspect-[4/5] rounded-xl md:rounded-[1.5rem] overflow-hidden bg-slate-100 mb-4 md:mb-6">
+                            <img :src="product.image_url" :alt="product.name"
+                                class="product-img w-full h-full object-cover">
+                            <div
+                                class="absolute top-2 right-2 md:top-4 md:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <button
+                                    class="w-8 h-8 md:w-10 md:h-10 rounded-full glass backdrop-blur-md flex items-center justify-center text-slate-800 hover:text-rose-500 transition-colors shadow-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 md:w-5 md:h-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="space-y-2 md:space-y-4">
+                            <div>
+                                <p class="text-[10px] md:text-xs font-bold text-indigo-500 uppercase tracking-widest"
+                                    x-text="getCategoryName(product.category_id)"></p>
+                                <h4 class="font-bold text-sm md:text-xl text-slate-800 line-clamp-1 mt-1"
+                                    x-text="product.name"></h4>
+                                <p class="font-extrabold text-sm md:text-lg text-slate-900 mt-1"
+                                    x-text="formatPrice(product.price)"></p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button @click="addToCart(product)"
+                                    class="flex-1 py-3 md:py-4 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white rounded-xl md:rounded-2xl text-slate-700 transition-all flex items-center justify-center space-x-2 font-bold shadow-sm group-hover:shadow-indigo-200 active:scale-95"
+                                    title="Tambah ke Keranjang">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                    </svg>
+                                    <span class="hidden md:inline">Tambah</span>
+                                </button>
+                                <button @click="shareProduct(product)"
+                                    class="p-3 md:p-4 bg-slate-50 text-slate-400 rounded-xl md:rounded-2xl hover:bg-slate-100 hover:text-indigo-600 transition-all active:scale-95 shadow-sm"
+                                    title="Bagikan Produk">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Load More Button -->
+            <div x-show="!loading && hasMoreProducts" class="flex justify-center mt-12 md:mt-16">
+                <button @click="displayLimit += 12"
+                    class="group relative px-10 py-4 bg-white border-2 border-slate-200 rounded-2xl font-bold text-slate-700 hover:border-indigo-600 hover:text-indigo-600 transition-all duration-300 shadow-sm hover:shadow-xl active:scale-95 overflow-hidden">
+                    <span class="relative z-10 flex items-center gap-2">
+                        Produk lainnya
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 group-hover:translate-y-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Sidebar -->
+    <div x-cloak x-show="cartOpen" class="fixed inset-0 z-[60] overflow-hidden" aria-labelledby="slide-over-title"
+        role="dialog" aria-modal="true">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="cartOpen = false">
+        </div>
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div x-show="cartOpen" x-transition:enter="transform transition ease-in-out duration-500 sm:duration-700"
+                x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+                x-transition:leave="transform transition ease-in-out duration-500 sm:duration-700"
+                x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+                class="w-screen max-w-md">
+                <div class="h-full flex flex-col bg-white shadow-2xl">
+                    <div class="flex-1 py-8 overflow-y-auto px-6">
+                        <div class="flex items-start justify-between mb-8">
+                            <h2 class="text-2xl font-extrabold text-slate-900">Keranjang Belanja</h2>
+                            <button @click="cartOpen = false" class="p-2 -mr-2 text-slate-400 hover:text-slate-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="mt-8">
+                            <div class="flow-root">
+                                <template x-if="cart.length === 0">
+                                    <div class="text-center py-20">
+                                        <div
+                                            class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 floating">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300"
+                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                            </svg>
+                                        </div>
+                                        <p class="text-slate-500 mb-6">Keranjang anda masih kosong</p>
+                                        <button @click="cartOpen = false"
+                                            class="px-6 py-2 bg-indigo-100 text-indigo-600 rounded-xl font-bold hover:bg-indigo-200 transition-colors">
+                                            Pilih Item Sekarang
+                                        </button>
+                                    </div>
+                                </template>
+                                <ul role="list" class="-my-6 divide-y divide-slate-100">
+                                    <template x-for="item in cart" :key="item.id">
+                                        <li class="py-6 flex">
+                                            <div
+                                                class="flex-shrink-0 w-20 h-20 border border-slate-200 rounded-xl overflow-hidden">
+                                                <img :src="item.image_url" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="ml-4 flex-1 flex flex-col">
+                                                <div>
+                                                    <div
+                                                        class="flex justify-between text-base font-bold text-slate-900">
+                                                        <h3 x-text="item.name"></h3>
+                                                        <p class="ml-4"
+                                                            x-text="formatPrice(item.price * item.quantity)"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-1 flex items-end justify-between text-sm">
+                                                    <div
+                                                        class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+                                                        <button @click="updateQty(item.id, -1)"
+                                                            class="px-3 py-1 hover:bg-slate-200 border-r border-slate-200 font-bold">-</button>
+                                                        <span class="px-3 font-bold" x-text="item.quantity"></span>
+                                                        <button @click="updateQty(item.id, 1)"
+                                                            class="px-3 py-1 hover:bg-slate-200 border-l border-slate-200 font-bold">+</button>
+                                                    </div>
+                                                    <button @click="removeFromCart(item.id)"
+                                                        class="font-bold text-rose-500 hover:text-rose-600">Hapus</button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-100 py-8 px-6 bg-slate-50/50">
+                        <div class="flex justify-between text-base font-bold text-slate-900 mb-2">
+                            <p>Subtotal</p>
+                            <p x-text="formatPrice(cartSubtotal)"></p>
+                        </div>
+                        <p class="mt-0.5 text-sm text-slate-500 mb-6">Pajak dan ongkos kirim dihitung saat checkout.</p>
+                        <div class="space-y-3">
+                            <button @click="cartOpen = false; checkoutOpen = true" :disabled="cart.length === 0"
+                                class="w-full flex justify-center items-center px-6 py-4 border border-transparent rounded-2xl shadow-lg text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95">
+                                Lanjut ke Checkout
+                            </button>
+                            <button @click="cartOpen = false"
+                                class="w-full flex justify-center items-center px-6 py-4 border border-slate-200 rounded-2xl text-lg font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all active:scale-95">
+                                Pilih Item Lain
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div x-cloak x-show="checkoutOpen" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" @click="checkoutOpen = false"></div>
+        <div
+            class="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="p-8 border-b border-slate-100 flex justify-between items-center">
+                <h2 class="text-2xl font-bold">Penyelesaian Pesanan</h2>
+                <button @click="checkoutOpen = false" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-8 space-y-8">
+                <!-- Progress Steps -->
+                <div class="flex items-center justify-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+                            :class="checkoutStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'">1
+                        </div>
+                        <span class="text-sm font-bold"
+                            :class="checkoutStep >= 1 ? 'text-indigo-600' : 'text-slate-400'">Data Diri</span>
+                    </div>
+                    <div class="w-8 h-px bg-slate-200"></div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+                            :class="checkoutStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'">2
+                        </div>
+                        <span class="text-sm font-bold"
+                            :class="checkoutStep >= 2 ? 'text-indigo-600' : 'text-slate-400'">Pembayaran</span>
+                    </div>
+                    <div class="w-8 h-px bg-slate-200"></div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+                            :class="checkoutStep >= 3 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'">3
+                        </div>
+                        <span class="text-sm font-bold"
+                            :class="checkoutStep >= 3 ? 'text-indigo-600' : 'text-slate-400'">Konfirmasi</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: Shipping Info -->
+                <div x-show="checkoutStep === 1" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-slate-700">Nama Lengkap</label>
+                            <input type="text" x-model="orderData.name"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                placeholder="Masukkan nama">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-bold text-slate-700">Nomor WhatsApp</label>
+                            <input type="tel" x-model="orderData.phone"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                placeholder="08xxxx">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700">Alamat Pengiriman</label>
+                        <textarea x-model="orderData.address" rows="3"
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            placeholder="Alamat lengkap..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Step 2: Payment Method -->
+                <div x-show="checkoutStep === 2" class="space-y-6">
+                    <h4 class="font-bold text-lg">Pilih Metode Pembayaran</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button @click="orderData.payment = 'transfer'"
+                            :class="orderData.payment === 'transfer' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-500' : 'border-slate-200 bg-white'"
+                            class="p-6 border rounded-2xl text-left transition-all">
+                            <div
+                                class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                            </div>
+                            <span class="block font-bold">Transfer Bank</span>
+                            <span class="text-xs text-slate-500"
+                                x-text="paymentSettings.transfer ? paymentSettings.transfer.bank : 'BCA, Mandiri, BRI'"></span>
+                        </button>
+                        <button @click="orderData.payment = 'qris'"
+                            :class="orderData.payment === 'qris' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-500' : 'border-slate-200 bg-white'"
+                            class="p-6 border rounded-2xl text-left transition-all">
+                            <div
+                                class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                </svg>
+                            </div>
+                            <span class="block font-bold">QRIS</span>
+                            <span class="text-xs text-slate-500">Gopay, OVO, Dana, LinkAja</span>
+                        </button>
+                    </div>
+
+                    <!-- Payment Details Display -->
+                    <div x-show="orderData.payment === 'transfer' && paymentSettings.transfer"
+                        class="bg-slate-900 text-white p-6 rounded-2xl space-y-4 shadow-xl">
+                        <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                            <span class="text-slate-400">Bank</span>
+                            <span class="font-bold" x-text="paymentSettings.transfer.bank"></span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                            <span class="text-slate-400">Nama Rekening</span>
+                            <span class="font-bold" x-text="paymentSettings.transfer.account_name"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 text-sm">No. Rekening</span>
+                            <div class="flex items-center space-x-2" x-data="{ copied: false }">
+                                <span class="font-bold text-lg tracking-widest"
+                                    x-text="paymentSettings.transfer.account_no"></span>
+                                <button
+                                    @click="navigator.clipboard.writeText(paymentSettings.transfer.account_no); copied = true; setTimeout(() => copied = false, 2000)"
+                                    class="p-2 hover:bg-white/10 rounded-lg transition-colors group relative"
+                                    title="Salin Nomor Rekening">
+                                    <svg x-show="!copied" xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                    </svg>
+                                    <svg x-show="copied" x-cloak xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span x-show="copied" x-cloak
+                                        class="absolute -top-8 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">Tersalin!</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-show="orderData.payment === 'qris'"
+                        class="flex flex-col items-center justify-center p-6 bg-white border-2 border-dashed border-slate-200 rounded-2xl">
+                        <div
+                            class="w-48 h-48 bg-white border border-slate-100 flex items-center justify-center rounded-2xl relative overflow-hidden shadow-sm">
+                            <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + (paymentSettings.qris ? paymentSettings.qris.qr_data : 'P20-PAYMENT')"
+                                alt="QRIS Code" class="w-full h-full object-contain p-2">
+                        </div>
+                        <p class="mt-4 text-sm text-slate-500 font-medium">Scan QR Code ini untuk membayar</p>
+                    </div>
+                </div>
+
+                <!-- Step 3: Success -->
+                <div x-show="checkoutStep === 3" class="text-center py-12 space-y-6">
+                    <div
+                        class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto scale-110 floating">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-3xl font-extrabold">Pesanan Berhasil!</h3>
+                        <p class="text-slate-500 mt-2">Terima kasih kak <span class="font-bold text-slate-800"
+                                x-text="orderData.name"></span>, Silahkan konfirmasi pembayaran di WhatsApp.</p>
+                    </div>
+                    <div class="bg-indigo-50 p-6 rounded-2xl text-left max-w-sm mx-auto shadow-sm">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-slate-500">ID Pesanan:</span>
+                            <span class="font-bold text-indigo-700" x-text="orderData.orderId"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Total Bayar:</span>
+                            <span class="font-bold text-indigo-700" x-text="formatPrice(orderData.lastTotal)"></span>
+                        </div>
+                    </div>
+
+                    <button @click="sendWhatsApp()"
+                        class="flex items-center justify-center space-x-2 w-full max-w-sm mx-auto px-6 py-4 bg-emerald-500 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 active:scale-95">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.942-.001-3.841-.482-5.538-1.391l-6.459 1.699zm6.314-2.105c1.535.912 3.041 1.392 4.583 1.393 5.423 0 9.835-4.412 9.838-9.835 0-2.628-1.024-5.1-2.885-6.961-1.862-1.861-4.335-2.885-6.962-2.885-5.424 0-9.836 4.411-9.839 9.835-.001 1.774.475 3.509 1.374 5.015l-.973 3.548 3.634-.955zm11.332-6.855c-.345-.174-2.041-1.007-2.358-1.122-.317-.116-.549-.174-.78.174-.231.348-.891 1.122-1.093 1.355-.201.231-.404.259-.75.085-.345-.174-1.46-.539-2.78-1.716-1.027-.917-1.721-2.049-1.921-2.396-.202-.347-.021-.535.153-.708.156-.156.345-.406.518-.609.173-.203.23-.348.345-.58.116-.232.058-.435-.029-.609-.087-.174-.78-1.884-1.069-2.58-.281-.677-.566-.585-.78-.596-.201-.01-.432-.011-.663-.011-.231 0-.606.087-.923.435-.317.348-1.213 1.188-1.213 2.899 0 1.71 1.242 3.362 1.416 3.594.173.232 2.445 3.734 5.922 5.235.826.356 1.471.569 1.973.728.83.264 1.585.226 2.182.137.665-.099 2.041-.834 2.329-1.64.288-.806.288-1.498.201-1.64-.087-.145-.317-.232-.663-.406z" />
+                        </svg>
+                        <span>Konfirmasi via WhatsApp</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-8 border-t border-slate-100 bg-slate-50/50 flex justify-between gap-4">
+                <template x-if="checkoutStep < 3">
+                    <button @click="checkoutStep > 1 ? checkoutStep-- : checkoutOpen = false"
+                        class="px-8 py-4 bg-white border border-slate-200 rounded-2xl font-bold hover:bg-slate-100 transition-all flex-1 active:scale-95">
+                        Kembali
+                    </button>
+                </template>
+                <template x-if="checkoutStep === 1">
+                    <button @click="if(orderData.name && orderData.phone && orderData.address) checkoutStep = 2"
+                        class="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg flex-1 active:scale-95">
+                        Pilih Pembayaran
+                    </button>
+                </template>
+                <template x-if="checkoutStep === 2">
+                    <button @click="confirmOrder()" :disabled="isSubmitting"
+                        class="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg flex-1 active:scale-95 flex items-center justify-center space-x-2">
+                        <div x-show="isSubmitting" class="loader !w-4 !h-4 !border-white !border-t-transparent"></div>
+                        <span x-text="isSubmitting ? 'Memproses...' : 'Konfirmasi Pesanan'"></span>
+                    </button>
+                </template>
+                <template x-if="checkoutStep === 3">
+                    <button @click="checkoutOpen = false; checkoutStep = 1"
+                        class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg flex-1">
+                        Selesai
+                    </button>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tentang Kami Section -->
+    <section id="tentang" class="py-16 md:py-24 px-6 bg-slate-50/50 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-30 -z-10 translate-x-1/2 -translate-y-1/2"></div>
+        <div class="container mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6 md:space-y-8" x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 400)">
+                    <div x-show="loaded" x-transition:enter="transition ease-out duration-700"
+                        class="inline-block px-3 py-1 bg-indigo-50 rounded-full text-indigo-600 font-bold text-[10px] tracking-widest uppercase"
+                        x-text="cms.about.badge || 'Cerita Kami'">
+                    </div>
+                    <h3 x-show="loaded" x-transition:enter="transition ease-out duration-700 delay-100"
+                        class="text-3xl md:text-5xl font-black leading-tight"
+                        x-text="cms.about.title || 'Kualitas Premium & Karya Lokal'">
+                    </h3>
+                    <p x-show="loaded" x-transition:enter="transition ease-out duration-700 delay-200"
+                        class="text-slate-600 text-base md:text-lg leading-relaxed"
+                        x-text="cms.about.description || 'Kami menghadirkan koleksi terbaik dari tangan-tangan pengrajin lokal profesional yang berdedikasi penuh...'">
+                    </p>
+                    <div x-show="loaded" x-transition:enter="transition ease-out duration-700 delay-300"
+                        class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100 shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900" x-text="(cms.about.features && cms.about.features[0]) ? cms.about.features[0].title : 'Kualitas Premium'"></h4>
+                                <p class="text-xs text-slate-500 mt-1" x-text="(cms.about.features && cms.about.features[0]) ? cms.about.features[0].desc : 'Produk dikurasi dengan standar tinggi.'"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100 shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900" x-text="(cms.about.features && cms.about.features[1]) ? cms.about.features[1].title : 'Karya Lokal'"></h4>
+                                <p class="text-xs text-slate-500 mt-1" x-text="(cms.about.features && cms.about.features[1]) ? cms.about.features[1].desc : '100% mendukung ekonomi kreatif lokal.'"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative group mt-8 lg:mt-0" x-data="{
+                    activeAbout: 0,
+                    init() {
+                        setInterval(() => {
+                            if (cms.about?.images?.length > 0) {
+                                this.activeAbout = (this.activeAbout + 1) % cms.about.images.length;
+                            }
+                        }, cms.sliders?.about?.speed || 4000);
+                    }
+                }">
+                    <div class="absolute -inset-4 bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 rounded-[3rem] blur-2xl group-hover:opacity-100 transition duration-1000"></div>
+                    <div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl transition-transform duration-700 hover:scale-[1.02] aspect-[4/3] md:aspect-auto">
+                        <template x-for="(img, index) in cms.about.images" :key="index">
+                            <img :src="img" x-show="activeAbout === index"
+                                x-transition:enter="transition ease-out duration-1000"
+                                :x-transition:enter-start="cms.sliders?.about?.mode === 'fade' ? 'opacity-0 scale-105' : 'opacity-0 translate-x-8'"
+                                x-transition:enter-end="opacity-100 translate-x-0 scale-100"
+                                x-transition:leave="transition ease-in duration-1000 absolute inset-0"
+                                x-transition:leave-start="opacity-100 translate-x-0"
+                                :x-transition:leave-end="cms.sliders?.about?.mode === 'fade' ? 'opacity-0 scale-95' : 'opacity-0 -translate-x-8'"
+                                class="w-full h-[350px] md:h-[450px] object-cover">
+                        </template>
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none"></div>
+                        <div class="absolute bottom-8 left-8 text-white z-10">
+                            <p class="text-3xl font-black">#BanggaLokal</p>
+                            <p class="text-sm opacity-80">Bersama Membangun Ekonomi Bangsa</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cara Order Section -->
+    <section id="cara-order" class="py-12 md:py-16 px-6 relative overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-slate-50 to-white -z-10"></div>
+        <div class="container mx-auto">
+            <div class="text-center max-w-3xl mx-auto mb-10" x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 300)">
+                <div x-show="loaded" x-transition:enter="transition ease-out duration-700" class="inline-block px-3 py-1 bg-indigo-50 rounded-full text-indigo-600 font-bold text-[10px] tracking-widest uppercase mb-3">
+                    Panduan Belanja
+                </div>
+                <h3 x-show="loaded" x-transition:enter="transition ease-out duration-700 delay-100" class="text-3xl md:text-4xl font-black mb-4">Cara Pemesanan</h3>
+                <p x-show="loaded" x-transition:enter="transition ease-out duration-700 delay-200" class="text-slate-500 text-base md:text-lg">Langkah mudah belanja di <span x-text="settings.name || 'P20'"></span>.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 relative">
+                <template x-for="(step, index) in cms.order_steps" :key="index">
+                    <div class="relative group p-4 md:p-6 rounded-2xl md:rounded-3xl bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500">
+                        <div class="w-10 h-10 md:w-12 md:h-12 bg-indigo-600 text-white rounded-lg md:rounded-xl flex items-center justify-center font-black text-lg md:text-xl shadow-lg shadow-indigo-100 mb-3 md:mb-4 group-hover:rotate-6 transition-transform" x-text="index + 1"></div>
+                        <h4 class="text-sm md:text-lg font-bold mb-1 md:mb-2 text-slate-900" x-text="step.title"></h4>
+                        <p class="text-[10px] md:text-sm text-slate-500 leading-tight md:leading-relaxed" x-text="step.desc"></p>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-10 md:py-20 px-6 mt-8 md:mt-20 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+        <div class="container mx-auto relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
+                <!-- Brand section -->
+                <div class="col-span-1 md:col-span-2 space-y-4 md:space-y-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 md:w-12 md:h-12 bg-indigo-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-xl md:text-2xl font-black tracking-tight leading-none" x-text="settings.name || 'Permata 20'"></h1>
+                            <p class="text-indigo-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mt-1" x-text="settings.tagline || 'Premium Collection'"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3 group text-left">
+                            <div class="p-2 bg-slate-800 rounded-lg text-indigo-400 mt-0.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-slate-300 text-sm md:text-base leading-relaxed md:max-w-xs" 
+                                   x-text="settings.address || 'Jalan Permata No. 20, Jakarta Selatan, 12345'"></p>
+                                <a :href="getMapsUrl()" 
+                                   target="_blank"
+                                   class="inline-flex items-center text-xs font-bold text-indigo-400 hover:text-white transition-colors mt-2 uppercase tracking-wider group/map">
+                                   Tampilkan di Maps
+                                   <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                   </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>                    <div class="flex flex-wrap gap-3">
+                        <!-- WhatsApp -->
+                        <a :href="'https://wa.me/' + (settings.cs_whatsapp || cms.global?.whatsapp || '6281234567890')" target="_blank"
+                           class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-green-600 hover:text-white transition-all hover:scale-110 active:scale-95 shadow-lg shadow-black/20 group">
+                            <svg class="w-6 h-6 transition-transform group-hover:rotate-12" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.29-4.143c1.589.943 3.129 1.416 4.77 1.416 5.4 0 9.796-4.396 9.798-9.797 0-2.618-1.02-5.08-2.87-6.932-1.85-1.85-4.311-2.87-6.931-2.87-5.405 0-9.803 4.398-9.806 9.799 0 1.74.457 3.442 1.32 4.944l-1.02 3.723 3.819-1.003zm10.536-7.51c-.284-.141-1.677-.828-1.936-.923-.259-.095-.448-.141-.637.141-.188.283-.73 1.05-.893 1.238-.163.188-.326.212-.611.071-.284-.141-1.2-.442-2.288-1.413-.846-.754-1.417-1.685-1.583-1.969-.165-.284-.017-.438.124-.579.127-.126.284-.33.426-.496.143-.165.189-.283.284-.472.095-.188.047-.354-.024-.495-.071-.141-.637-1.533-.873-2.1-.23-.556-.464-.48-.637-.489l-.544-.006c-.188 0-.495.07-.754.33-.259.259-.991.968-.991 2.36 0 1.391 1.014 2.735 1.155 2.924.141.188 1.996 3.048 4.837 4.272.675.291 1.203.465 1.613.596.678.216 1.294.186 1.782.113.543-.081 1.676-.684 1.912-1.344.236-.659.236-1.226.165-1.344-.071-.118-.259-.188-.543-.329z"/></svg>
+                        </a>
+                        <!-- Instagram -->
+                        <a :href="cms.global?.instagram || '#'" target="_blank" class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-gradient-to-tr from-yellow-400 to-fuchsia-600 hover:text-white transition-all hover:scale-110 active:scale-95 shadow-lg shadow-black/20 group">
+                            <svg class="w-6 h-6 transition-transform group-hover:rotate-12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204 0.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                        </a>
+                        <!-- TikTok -->
+                        <a :href="cms.global?.tiktok || '#'" target="_blank" class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-black hover:text-white transition-all hover:scale-110 active:scale-95 shadow-lg shadow-black/20 group">
+                            <svg class="w-6 h-6 transition-transform group-hover:rotate-12" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.89 2.89 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.33 6.33 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
+                        </a>
+                        <!-- Facebook/Web -->
+                        <a :href="cms.global?.facebook || '#'" target="_blank" class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all hover:scale-110 active:scale-95 shadow-lg shadow-black/20 group">
+                            <svg class="w-6 h-6 transition-transform group-hover:rotate-12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Links Sections (2 columns on mobile) -->
+                <div class="grid grid-cols-2 col-span-1 md:col-span-2 gap-4 md:grid-cols-2">
+                    <div>
+                        <h4 class="text-base md:text-lg font-bold mb-4 md:mb-6 uppercase tracking-wider text-indigo-400">Kategori</h4>
+                        <ul class="space-y-2 md:space-y-4 text-slate-400 text-sm md:text-base">
+                            <template x-for="cat in categories" :key="cat.id">
+                                <li class="hover:text-white transition-colors cursor-pointer"
+                                    @click="activeCategory = cat.id; document.getElementById('produk').scrollIntoView()"
+                                    x-text="cat.name"></li>
+                            </template>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-base md:text-lg font-bold mb-4 md:mb-6 uppercase tracking-wider text-indigo-400">Informasi</h4>
+                        <ul class="space-y-3 md:space-y-4">
+                            <li><a href="#tentang" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all text-sm md:text-base cursor-pointer inline-block">Tentang Kami</a></li>
+                            <li><a href="#cara-order" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all text-sm md:text-base cursor-pointer inline-block">Cara Order</a></li>
+                            <li><a href="#" class="text-slate-400 hover:text-white hover:translate-x-1 transition-all text-sm md:text-base cursor-pointer inline-block">Hubungi Kami</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright -->
+            <div class="mt-10 md:mt-20 pt-6 md:pt-8 border-t border-slate-800 text-center text-slate-500 text-[10px] md:text-sm">
+                &copy; 2026 <span x-text="settings.name || 'Permata 20'"></span>. All Rights Reserved. Crafted with ❤️ for Local Heroes.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const SUPABASE_URL = 'https://uavwpmvpxgckrnubnqex.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_fOqPQgsbckJR9PzYV20uZQ_fIwIzU4h';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function shopApp() {
+            return {
+                loading: true,
+                isSubmitting: false,
+                cartOpen: false,
+                checkoutOpen: false,
+                checkoutStep: 1,
+                activeCategory: 'all',
+                cart: [],
+                categories: [],
+                products: [],
+                settings: {},
+                paymentSettings: {},
+                orderData: {
+                    name: '',
+                    phone: '',
+                    address: '',
+                    payment: 'transfer',
+                    orderId: '',
+                    lastTotal: 0
+                },
+                cms: {
+                    hero: {},
+                    about: {},
+                    order_steps: [],
+                    sliders: {
+                        hero: { mode: 'fade', speed: 5000 },
+                        about: { mode: 'slide', speed: 4000 }
+                    },
+                    global: {}
+                },
+                displayLimit: 8,
+
+                async initApp() {
+                    try {
+                        const [catRes, prodRes, setRes] = await Promise.all([
+                            supabaseClient.from('p20_categories').select('*'),
+                            supabaseClient.from('p20_products').select('*'),
+                            supabaseClient.from('p20_settings').select('*')
+                        ]);
+
+                        this.categories = catRes.data || [];
+                        this.products = prodRes.data || [];
+
+                        const settingsData = setRes.data || [];
+                        this.settings = settingsData.find(s => s.key === 'store_identity')?.value || {};
+                        this.paymentSettings = settingsData.find(s => s.key === 'payment_methods')?.value || {};
+                        
+                        // CMS data mapping
+                        this.cms.hero = settingsData.find(s => s.key === 'hero_content')?.value || {};
+                        this.cms.about = settingsData.find(s => s.key === 'about_content')?.value || {};
+                        this.cms.order_steps = settingsData.find(s => s.key === 'order_content')?.value || [];
+                        this.cms.sliders = settingsData.find(s => s.key === 'slider_configs')?.value || this.cms.sliders;
+                        this.cms.global = settingsData.find(s => s.key === 'global_settings')?.value || {};
+
+                        // Set initial display limit based on device
+                        if (window.innerWidth < 768) {
+                            this.displayLimit = 6;
+                        } else {
+                            this.displayLimit = 8;
+                        }
+
+                        this.loading = false;
+                    } catch (error) {
+                        console.error('Error initializing app:', error);
+                    }
+                },
+
+                get filteredProducts() {
+                    let prods = this.activeCategory === 'all'
+                        ? this.products
+                        : this.products.filter(p => p.category_id === this.activeCategory);
+                    return prods.slice(0, this.displayLimit);
+                },
+
+                get hasMoreProducts() {
+                    let total = this.activeCategory === 'all'
+                        ? this.products.length
+                        : this.products.filter(p => p.category_id === this.activeCategory).length;
+                    return this.displayLimit < total;
+                },
+
+                get cartTotalItems() {
+                    return this.cart.reduce((sum, item) => sum + item.quantity, 0);
+                },
+
+                get cartSubtotal() {
+                    return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                },
+
+                formatPrice(val) {
+                    return new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0
+                    }).format(val);
+                },
+
+                getCategoryName(catId) {
+                    return this.categories.find(c => c.id === catId)?.name || 'Produk';
+                },
+
+                addToCart(product) {
+                    const existing = this.cart.find(item => item.id === product.id);
+                    if (existing) {
+                        existing.quantity++;
+                    } else {
+                        this.cart.push({ ...product, quantity: 1 });
+                    }
+                    this.cartOpen = true;
+                },
+
+                shareProduct(product) {
+                    const text = `Cek produk keren ini di ${this.settings.name || 'UMKM Permata 20'}: ${product.name} - ${this.formatPrice(product.price)}`;
+                    const url = window.location.href;
+
+                    if (navigator.share) {
+                        navigator.share({
+                            title: product.name,
+                            text: text,
+                            url: url
+                        }).catch(err => console.log('Error sharing', err));
+                    } else {
+                        const waUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+                        window.open(waUrl, '_blank');
+                    }
+                },
+
+                removeFromCart(id) {
+                    this.cart = this.cart.filter(item => item.id !== id);
+                },
+
+                getMapsUrl() {
+                    const link = this.cms.global?.maps_link;
+                    const addressQuery = encodeURIComponent(this.settings.address || 'Jalan Permata No. 20, Jakarta Selatan');
+                    const fallbackLink = `https://www.google.com/maps/search/?api=1&query=${addressQuery}`;
+                    
+                    if (!link) return fallbackLink;
+                    
+                    // If it's an iframe or an embed URL, it won't work in a top-level tab.
+                    // Instead, use the address-based search which is more reliable.
+                    if (link.includes('<iframe') || link.includes('/maps/embed')) {
+                        return fallbackLink;
+                    }
+                    return link;
+                },
+
+                updateQty(id, delta) {
+                    const item = this.cart.find(item => item.id === id);
+                    if (item) {
+                        item.quantity += delta;
+                        if (item.quantity < 1) this.removeFromCart(id);
+                    }
+                },
+
+                async confirmOrder() {
+                    if (!this.orderData.name || !this.orderData.phone || !this.orderData.address) return;
+
+                    this.isSubmitting = true;
+                    this.orderData.lastTotal = this.cartSubtotal;
+                    const random = Math.floor(1000 + Math.random() * 9000);
+                    this.orderData.orderId = `#P20-2026-${random}`;
+
+                    try {
+                        // 1. Insert order
+                        const { data: order, error: orderError } = await supabaseClient
+                            .from('p20_orders')
+                            .insert([{
+                                order_id: this.orderData.orderId,
+                                customer_name: this.orderData.name,
+                                whatsapp: this.orderData.phone,
+                                address: this.orderData.address,
+                                payment_method: this.orderData.payment,
+                                total_price: this.orderData.lastTotal
+                            }])
+                            .select()
+                            .single();
+
+                        if (orderError) throw orderError;
+
+                        // 2. Insert order items
+                        const orderItems = this.cart.map(item => ({
+                            order_id: order.id,
+                            product_id: item.id,
+                            quantity: item.quantity,
+                            price_at_order: item.price
+                        }));
+
+                        const { error: itemsError } = await supabaseClient
+                            .from('p20_order_items')
+                            .insert(orderItems);
+
+                        if (itemsError) throw itemsError;
+
+                        // 3. Success
+                        this.checkoutStep = 3;
+                        this.cart = [];
+                    } catch (error) {
+                        console.error('Error submitting order:', error);
+                        alert('Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                sendWhatsApp() {
+                    const message = `Halo CS ${this.settings.name || 'UMKM Permata 20'},%0A%0ASaya ingin konfirmasi pembayaran untuk pesanan:%0A*ID Pesanan:* ${this.orderData.orderId}%0A*Nama:* ${this.orderData.name}%0A*Total Bayar:* ${this.formatPrice(this.orderData.lastTotal)}%0A*Metode:* ${this.orderData.payment === 'transfer' ? 'Transfer Bank' : 'QRIS'}%0A%0A_Saya akan melampirkan bukti bayar setelah ini._`;
+                    window.open(`https://wa.me/${this.settings.cs_whatsapp || '6281234567890'}?text=${message}`, '_blank');
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

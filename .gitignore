@@ -1,0 +1,8 @@
+.gemini/
+.DS_Store
+node_modules/
+dist/
+/brain/
+/tmp/
+*.log
+.system_generated/

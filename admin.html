@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="id" x-data="adminApp()">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Permata 20</title>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #ec4899;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        .glass { 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255, 255, 255, 0.4); 
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .gradient-text { 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+
+        [x-cloak] { display: none !important; }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex" x-init="initAdmin()">
+
+    <!-- Login Overlay -->
+    <div x-show="!isLoggedIn" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xl">
+        <div class="w-full max-w-md glass p-8 rounded-[2.5rem] shadow-2xl text-center space-y-8 border-white/50">
+            <div class="space-y-2">
+                <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-indigo-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800">Admin Area</h3>
+                <p class="text-slate-500 font-medium">Masukkan PIN Keamanan untuk Masuk</p>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="password" x-model="passwordInput" @keydown.enter="login()" class="w-full px-6 py-4 bg-white/50 border border-slate-200 rounded-2xl text-center text-2xl tracking-[1em] focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm" placeholder="••••">
+                <button @click="login()" :disabled="isValidating" class="w-full py-4 gradient-bg text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-200 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center space-x-2">
+                    <template x-if="isValidating">
+                        <div class="loader !w-5 !h-5 !border-white !border-t-transparent"></div>
+                    </template>
+                    <span x-text="isValidating ? 'Memvalidasi...' : 'Masuk Dashboard'"></span>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-400">Hubungi IT Support jika Anda lupa PIN Anda.</p>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <template x-if="isLoggedIn">
+        <aside class="w-64 glass border-r border-slate-200/50 hidden lg:flex flex-col fixed inset-y-0 z-40">
+            <div class="p-8">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <h1 class="text-xl font-extrabold tracking-tight">Admin <span class="gradient-text">P20</span></h1>
+                </div>
+            </div>
+            
+            <nav class="flex-1 px-4 space-y-2 mt-4">
+                <button @click="activeTab = 'products'" :class="activeTab === 'products' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    <span>Produk</span>
+                </button>
+                <button @click="activeTab = 'orders'" :class="activeTab === 'orders' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                    <span>Pesanan</span>
+                </button>
+                <button @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    <span>Profil Admin</span>
+                </button>
+                <button @click="activeTab = 'cms'" :class="activeTab === 'cms' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.123 3.877a2.121 2.121 0 013 3l-9.939 9.94c-.1.1-.23.17-.37.2l-4 1a.5.5 0 01-.6-.6l1-4c.03-.14.1-.27.2-.37l9.94-9.939z" /></svg>
+                    <span>Kelola Konten</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-200/50">
+                <a href="index.html" class="flex items-center space-x-3 px-4 py-3 text-slate-500 hover:text-indigo-600 font-bold transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                    <span>Lihat Toko</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Mobile Bottom Navigation -->
+        <nav x-show="isLoggedIn" class="lg:hidden fixed bottom-0 inset-x-0 glass border-t border-slate-200/50 z-50 flex justify-around items-center px-4 py-3 pb-6">
+            <button @click="activeTab = 'products'" :class="activeTab === 'products' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center space-y-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                <span class="text-[10px] font-bold uppercase tracking-tight">Produk</span>
+            </button>
+            <button @click="activeTab = 'orders'" :class="activeTab === 'orders' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center space-y-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                <span class="text-[10px] font-bold uppercase tracking-tight">Pesanan</span>
+            </button>
+            <button @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center space-y-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span class="text-[10px] font-bold uppercase tracking-tight">Profil</span>
+            </button>
+            <button @click="activeTab = 'cms'" :class="activeTab === 'cms' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center space-y-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.123 3.877a2.121 2.121 0 013 3l-9.939 9.94c-.1.1-.23.17-.37.2l-4 1a.5.5 0 01-.6-.6l1-4c.03-.14.1-.27.2-.37l9.94-9.939z" /></svg>
+                <span class="text-[10px] font-bold uppercase tracking-tight">Konten</span>
+            </button>
+        </nav>
+    </template>
+
+    <!-- Main Content -->
+    <main class="flex-1 lg:ml-64 p-4 md:p-8 pb-24 lg:pb-8" x-show="isLoggedIn" x-cloak>
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+                <h2 class="text-4xl font-black tracking-tight" x-text="tabTitle"></h2>
+                <p class="text-slate-500 font-medium mt-1" x-text="tabDesc"></p>
+            </div>
+            
+            <template x-if="activeTab === 'products'">
+                <button @click="openProductModal()" class="px-8 py-4 gradient-bg text-white rounded-2xl font-bold shadow-xl shadow-indigo-200 hover:scale-[1.05] active:scale-95 transition-all flex items-center space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    <span>Tambah Produk</span>
+                </button>
+            </template>
+        </header>
+
+        <!-- Product List -->
+        <div x-show="activeTab === 'products'" class="space-y-6">
+            <div x-show="loading" class="flex flex-col items-center justify-center py-20">
+                <div class="loader"></div>
+                <p class="mt-4 text-slate-500 font-medium">Sinkronisasi produk...</p>
+            </div>
+            
+            <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                <template x-for="product in products" :key="product.id">
+                    <div class="glass p-6 rounded-[2.5rem] flex items-center space-x-6 group hover:shadow-2xl transition-all duration-500 border-white">
+                        <div class="w-24 h-24 rounded-3xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-inner">
+                            <img :src="product.image_url" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-extrabold text-slate-800 truncate text-lg" x-text="product.name"></h4>
+                            <p class="text-base font-black text-indigo-600 mt-1" x-text="formatPrice(product.price)"></p>
+                            <p class="text-[10px] font-black text-slate-400 mt-2 uppercase tracking-[0.2em]" x-text="getCategoryName(product.category_id)"></p>
+                        </div>
+                        <div class="flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 transition-transform duration-500">
+                            <button @click="openProductModal(product)" class="p-3 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white rounded-2xl transition-all shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.123 3.877a2.121 2.121 0 013 3l-9.939 9.94c-.1.1-.23.17-.37.2l-4 1a.5.5 0 01-.6-.6l1-4c.03-.14.1-.27.2-.37l9.94-9.939z" /></svg>
+                            </button>
+                            <button @click="deleteProduct(product.id)" class="p-3 text-rose-500 bg-rose-50 hover:bg-rose-600 hover:text-white rounded-2xl transition-all shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Order List -->
+        <div x-show="activeTab === 'orders'" class="space-y-6">
+            <div x-show="loading" class="flex flex-col items-center justify-center py-20">
+                <div class="loader"></div>
+                <p class="mt-4 text-slate-500 font-medium">Mengambil data transaksi...</p>
+            </div>
+            
+            <div x-show="!loading && orders.length === 0" class="text-center py-24 glass rounded-[3rem] border-dashed border-2 border-slate-200">
+                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                </div>
+                <p class="text-slate-400 font-bold text-lg">Hening sejenak... Belum ada pesanan.</p>
+            </div>
+
+            <div x-show="!loading && orders.length > 0" class="glass rounded-[2.5rem] overflow-hidden border-white shadow-2xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-indigo-50/50">
+                                <th class="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">ID & Tanggal</th>
+                                <th class="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Pelanggan</th>
+                                <th class="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Total</th>
+                                <th class="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Status</th>
+                                <th class="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="order in orders" :key="order.id">
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-8 py-6">
+                                        <div class="font-black text-slate-800" x-text="order.order_id"></div>
+                                        <div class="text-[10px] font-bold text-slate-400 mt-1 uppercase" x-text="new Date(order.created_at).toLocaleString('id-ID')"></div>
+                                    </td>
+                                    <td class="px-8 py-6">
+                                        <div class="font-extrabold text-slate-800" x-text="order.customer_name"></div>
+                                        <div class="text-xs font-bold text-indigo-500 mt-1" x-text="order.whatsapp"></div>
+                                    </td>
+                                    <td class="px-8 py-6 font-black text-slate-900" x-text="formatPrice(order.total_price)"></td>
+                                    <td class="px-8 py-6">
+                                        <span :class="{
+                                            'bg-amber-100 text-amber-600': order.status === 'Diproses',
+                                            'bg-green-100 text-green-600': order.status === 'Selesai',
+                                            'bg-rose-100 text-rose-600': order.status === 'Dibatalkan'
+                                        }" class="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider" x-text="order.status"></span>
+                                    </td>
+                                    <td class="px-8 py-6">
+                                        <div class="flex space-x-2">
+                                            <button @click="updateOrderStatus(order.id, 'Selesai')" class="w-10 h-10 flex items-center justify-center text-green-600 bg-green-50 hover:bg-green-600 hover:text-white rounded-xl transition-all shadow-sm" title="Selesai">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                            </button>
+                                            <button @click="updateOrderStatus(order.id, 'Dibatalkan')" class="w-10 h-10 flex items-center justify-center text-rose-500 bg-rose-50 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm" title="Batalkan">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CMS Tab -->
+        <div x-show="activeTab === 'cms'" class="space-y-8 max-w-5xl">
+            <!-- Hero Section Editor -->
+            <div class="glass p-8 rounded-[3rem] border-white shadow-xl space-y-8">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-black flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        </div>
+                        <span>Editor Hero Section</span>
+                    </h3>
+                    <button @click="saveCMS('hero_content', cms.hero)" class="px-6 py-3 gradient-bg text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <span>Simpan Perubahan Hero</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Intro Text</label>
+                        <input type="text" x-model="cms.hero.intro" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">CTA Text</label>
+                        <input type="text" x-model="cms.hero.cta_text" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold">
+                    </div>
+                    <div class="col-span-full space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Main Title (Header)</label>
+                        <input type="text" x-model="cms.hero.title" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-black text-xl">
+                    </div>
+                    <div class="col-span-full space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Subtitle / Description</label>
+                        <textarea x-model="cms.hero.subtitle" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold resize-none h-24"></textarea>
+                    </div>
+
+                    <!-- Slider Configs -->
+                    <div class="p-6 bg-slate-50 rounded-[2rem] space-y-4">
+                        <h4 class="font-black text-slate-700 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>Konfigurasi Slider</span>
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mode Transition</label>
+                                <select x-model="cms.sliders.hero.mode" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-sm">
+                                    <option value="slide">Slide (Geser)</option>
+                                    <option value="fade">Fade (Memudar)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kecepatan (ms)</label>
+                                <input type="number" x-model="cms.sliders.hero.speed" step="500" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hero Images -->
+                    <div class="p-6 bg-slate-50 rounded-[2rem] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-black text-slate-700 flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <span>Gambar Banner Hero</span>
+                            </h4>
+                            <label class="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-colors flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                <span>Upload</span>
+                                <input type="file" @change="uploadCMSImage($event, cms.hero.images)" accept="image/*" class="hidden">
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                            <template x-for="(img, index) in cms.hero.images" :key="index">
+                                <div class="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm">
+                                    <img :src="img" class="w-full h-full object-cover">
+                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button @click="cms.hero.images.splice(index, 1)" class="p-2 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="uploadingImage" class="aspect-square rounded-xl border border-dashed border-indigo-300 bg-indigo-50/30 flex items-center justify-center">
+                                <div class="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Section Editor -->
+            <div class="glass p-8 rounded-[3rem] border-white shadow-xl space-y-8">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-black flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <span>Editor Tentang Kami</span>
+                    </h3>
+                    <button @click="saveCMS('about_content', cms.about)" class="px-6 py-3 bg-amber-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-100 flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <span>Simpan Perubahan About</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Small Badge (Top)</label>
+                        <input type="text" x-model="cms.about.badge" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 outline-none font-bold">
+                    </div>
+                    <div class="col-span-full space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Section Title</label>
+                        <input type="text" x-model="cms.about.title" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 outline-none font-black text-xl">
+                    </div>
+                    <div class="col-span-full space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Story Description</label>
+                        <textarea x-model="cms.about.description" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 outline-none font-bold resize-none h-32"></textarea>
+                    </div>
+
+                    <!-- Slider Configs -->
+                    <div class="p-6 bg-slate-50 rounded-[2rem] space-y-4">
+                        <h4 class="font-black text-slate-700 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>Konfigurasi Galeri</span>
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mode Transition</label>
+                                <select x-model="cms.sliders.about.mode" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-sm">
+                                    <option value="slide">Slide (Geser)</option>
+                                    <option value="fade">Fade (Memudar)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kecepatan (ms)</label>
+                                <input type="number" x-model="cms.sliders.about.speed" step="500" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gallery Images -->
+                    <div class="p-6 bg-slate-50 rounded-[2rem] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-black text-slate-700 flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <span>Gambar Galeri Tentang Kami</span>
+                            </h4>
+                            <label class="cursor-pointer px-4 py-2 bg-amber-600 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-amber-700 transition-colors flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                <span>Upload</span>
+                                <input type="file" @change="uploadCMSImage($event, cms.about.images)" accept="image/*" class="hidden">
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                            <template x-for="(img, index) in cms.about.images" :key="index">
+                                <div class="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm">
+                                    <img :src="img" class="w-full h-full object-cover">
+                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <button @click="cms.about.images.splice(index, 1)" class="p-2 bg-rose-500 text-white rounded-full hover:bg-rose-600 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="uploadingImage" class="aspect-square rounded-xl border border-dashed border-amber-300 bg-amber-50/30 flex items-center justify-center">
+                                <div class="w-5 h-5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- About Features -->
+                    <div class="p-6 bg-slate-50 rounded-[2rem] space-y-4">
+                        <h4 class="font-black text-slate-700 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            <span>Fitur Utama / Keunggulan</span>
+                        </h4>
+                        <div class="space-y-4">
+                            <template x-for="(feat, idx) in cms.about.features" :key="idx">
+                                <div class="p-4 bg-white rounded-xl border border-slate-100 space-y-2 relative group">
+                                    <button @click="cms.about.features.splice(idx, 1)" class="absolute top-2 right-2 text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                    <input type="text" x-model="feat.title" placeholder="Judul Fitur" class="w-full border-none p-0 focus:ring-0 font-bold text-sm bg-transparent">
+                                    <input type="text" x-model="feat.desc" placeholder="Deskripsi Singkat" class="w-full border-none p-0 focus:ring-0 text-xs text-slate-500 bg-transparent">
+                                </div>
+                            </template>
+                            <button @click="if(!cms.about.features) cms.about.features=[]; cms.about.features.push({title:'Fitur Baru', desc:''})" class="text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:text-indigo-700">+ Tambah Fitur</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global & Social Footer Settings -->
+            <div class="glass p-8 rounded-[3rem] border-white shadow-xl space-y-8">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-black flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                        </div>
+                        <span>Pengaturan Global & Footer</span>
+                    </h3>
+                    <button @click="await Promise.all([saveCMS('global_settings', cms.global, true), saveSettings()]); alert('Seluruh pengaturan footer berhasil diperbarui!')" class="px-6 py-3 bg-emerald-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-100 flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <span>Simpan Pengaturan Footer</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">WhatsApp Number (62...)</label>
+                        <input type="text" x-model="settings.cs_whatsapp" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 outline-none font-bold">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Store Tagline</label>
+                        <input type="text" x-model="settings.tagline" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 outline-none font-bold">
+                    </div>
+                    <div class="col-span-full space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Store Address</label>
+                        <input type="text" x-model="settings.address" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 outline-none font-bold">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Instagram Link</label>
+                        <input type="text" x-model="cms.global.instagram" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 outline-none font-bold">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">TikTok Link</label>
+                        <input type="text" x-model="cms.global.tiktok" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 outline-none font-bold">
+                    </div>
+                    <div class="col-span-full space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Google Maps URL (Embed/Direct Link)</label>
+                        <input type="text" x-model="cms.global.maps_link" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 outline-none font-bold">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cara Order Editor -->
+            <div class="glass p-8 rounded-[3rem] border-white shadow-xl space-y-8">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-black flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                        </div>
+                        <span>Editor Cara Order</span>
+                    </h3>
+                    <button @click="saveCMS('order_content', cms.order_steps)" class="px-6 py-3 gradient-bg text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <span>Simpan Perubahan Order</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <template x-for="(step, index) in cms.order_steps" :key="index">
+                        <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold" x-text="index + 1"></span>
+                                <button @click="cms.order_steps.splice(index, 1)" class="text-rose-500 p-2 hover:bg-rose-50 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Judul Langkah</label>
+                                <input type="text" x-model="step.title" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-sm">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Deskripsi Singkat</label>
+                                <textarea x-model="step.desc" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl font-medium text-xs h-16 resize-none"></textarea>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <button @click="cms.order_steps.push({ title: 'Baru', desc: '' })" class="w-full py-4 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 font-bold hover:border-indigo-300 hover:text-indigo-500 transition-all uppercase tracking-widest text-xs">
+                    + Tambah Langkah Pemesanan
+                </button>
+            </div>
+
+            <!-- Save Global Config button at the very bottom -->
+             <div class="flex items-center justify-center pt-8">
+                 <button @click="saveAllCMS()" class="px-12 py-5 gradient-bg text-white rounded-[2rem] font-black text-lg shadow-2xl shadow-indigo-200 hover:scale-[1.05] active:scale-95 transition-all">
+                     Sync Semua Perubahan Website
+                 </button>
+             </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div x-show="activeTab === 'settings'" class="space-y-8 max-w-2xl">
+            <div class="glass p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] space-y-6 border-white shadow-xl">
+                <h4 class="text-xl font-black flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    </div>
+                    <span>Keamanan Akun</span>
+                </h4>
+                <div class="max-w-sm space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest">PIN Baru</label>
+                        <input type="password" x-model="newPassword" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all font-bold tracking-widest">
+                    </div>
+                    <button @click="updatePassword()" class="w-full md:w-auto px-10 py-4 bg-rose-500 text-white rounded-2xl font-black shadow-xl shadow-rose-100 active:scale-95 transition-all">Ganti PIN Keamanan</button>
+                </div>
+            </div>
+            
+            <button @click="logout()" class="w-full py-5 glass rounded-[2rem] text-rose-500 font-black text-lg hover:bg-rose-50 transition-colors border-rose-100">Keluar Sistem</button>
+        </div>
+    </main>
+
+    <!-- Product Modal -->
+    <div x-cloak x-show="productModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" @click="productModal = false"></div>
+        <div class="relative w-full max-w-xl bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col border-white">
+            <div class="p-10 border-b border-slate-100 flex justify-between items-center bg-indigo-50/20">
+                <h3 class="text-3xl font-black" x-text="isEditing ? 'Edit Produk' : 'Produk Baru'"></h3>
+                <button @click="productModal = false" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 bg-white rounded-xl shadow-sm">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            
+            <form @submit.prevent="saveProduct()" class="p-10 space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Label Produk</label>
+                        <input type="text" x-model="editingProduct.name" required class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-bold">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Katalog</label>
+                        <select x-model="editingProduct.category_id" required class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-bold">
+                            <option value="">Pilih Kategori</option>
+                            <template x-for="cat in categories" :key="cat.id">
+                                <option :value="cat.id" x-text="cat.name"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Harga Retail</label>
+                        <input type="number" x-model="editingProduct.price" required class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-extrabold">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Jumlah Stok</label>
+                        <input type="number" x-model="editingProduct.stock" required class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-extrabold">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest">Asset Visual (Upload)</label>
+                    <div class="flex items-center space-x-4">
+                        <template x-if="editingProduct.image_url">
+                            <div class="w-16 h-16 rounded-2xl overflow-hidden border border-slate-200">
+                                <img :src="editingProduct.image_url" class="w-full h-full object-cover">
+                            </div>
+                        </template>
+                        <div class="flex-1 relative">
+                            <input type="file" @change="handleFileUpload($event)" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                            <div class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center space-x-2 text-slate-500 font-bold hover:bg-slate-100 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                <span x-text="uploadingImage ? 'Mengompres & Upload...' : 'Pilih File (Max 1MB)'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-4 pt-6">
+                    <button type="button" @click="productModal = false" class="flex-1 py-5 bg-white border border-slate-200 rounded-[1.5rem] font-black hover:bg-slate-50 transition-colors">Batal</button>
+                    <button type="submit" :disabled="isSubmitting" class="flex-1 py-5 gradient-bg text-white rounded-[1.5rem] font-black shadow-xl shadow-indigo-200 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center space-x-3">
+                        <div x-show="isSubmitting" class="loader !w-5 !h-5 !border-white !border-t-transparent"></div>
+                        <span x-text="isSubmitting ? 'Syncing...' : 'Simpan Perubahan'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uavwpmvpxgckrnubnqex.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_fOqPQgsbckJR9PzYV20uZQ_fIwIzU4h';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function adminApp() {
+            return {
+                isLoggedIn: sessionStorage.getItem('p20_admin_session') === 'true',
+                isValidating: false,
+                passwordInput: '',
+                newPassword: '',
+                loading: true,
+                isSubmitting: false,
+                activeTab: 'products',
+                products: [],
+                categories: [],
+                orders: [],
+                settings: {},
+                productModal: false,
+                isEditing: false,
+                uploadingImage: false,
+                editingProduct: {
+                    id: null,
+                    name: '',
+                    category_id: '',
+                    price: 0,
+                    stock: 0,
+                    image_url: ''
+                },
+
+                get tabTitle() {
+                    return { products: 'Katalog Produk', orders: 'Daftar Transaksi', settings: 'Profil Admin', cms: 'Editor Website' }[this.activeTab];
+                },
+
+                get tabDesc() {
+                    return { 
+                        products: 'Manajemen inventori barang dan aset visual.', 
+                        orders: 'Riwayat pesanan dan status pengiriman pelanggan.',
+                        settings: 'Konfigurasi keamanan dan profil administrator.',
+                        cms: 'Kendalikan teks, gambar slider, dan mode animasi website Anda.'
+                    }[this.activeTab];
+                },
+                
+                cms: {
+                    hero: { intro: '', title: '', subtitle: '', cta_text: '', images: [] },
+                    about: { title: '', description: '', images: [] },
+                    sliders: {
+                        hero: { mode: 'slide', speed: 5000 },
+                        about: { mode: 'fade', speed: 4000 }
+                    },
+                    global: { whatsapp: '', instagram: '', tiktok: '', maps_link: '' },
+                    order_steps: []
+                },
+
+                async initAdmin() {
+                    if (this.isLoggedIn) {
+                        await this.fetchData();
+                    }
+                },
+
+                async login() {
+                    if (!this.passwordInput) return;
+                    this.isValidating = true;
+                    
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('p20_settings')
+                            .select('value')
+                            .eq('key', 'admin_password')
+                            .single();
+
+                        if (error) throw error;
+
+                        if (this.passwordInput === data.value) {
+                            this.isLoggedIn = true;
+                            sessionStorage.setItem('p20_admin_session', 'true');
+                            this.passwordInput = '';
+                            await this.fetchData();
+                        } else {
+                            alert('PIN Keamanan salah! Akses ditolak.');
+                            this.passwordInput = '';
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        alert('Terjadi kesalahan koneksi.');
+                    } finally {
+                        this.isValidating = false;
+                    }
+                },
+
+                logout() {
+                    this.isLoggedIn = false;
+                    sessionStorage.removeItem('p20_admin_session');
+                    this.activeTab = 'products';
+                },
+
+                async fetchData() {
+                    this.loading = true;
+                    try {
+                        const [prodRes, catRes, ordRes, setRes] = await Promise.all([
+                            supabaseClient.from('p20_products').select('*').order('created_at', { ascending: false }),
+                            supabaseClient.from('p20_categories').select('*'),
+                            supabaseClient.from('p20_orders').select('*').order('created_at', { ascending: false }),
+                            supabaseClient.from('p20_settings').select('*')
+                        ]);
+
+                        this.products = prodRes.data || [];
+                        this.categories = catRes.data || [];
+                        this.orders = ordRes.data || [];
+                        this.settings = setRes.data.find(s => s.key === 'store_identity')?.value || {};
+                        
+                        // CMS Mapping
+                        const cmsData = setRes.data;
+                        this.cms.hero = cmsData.find(s => s.key === 'hero_content')?.value || this.cms.hero;
+                        this.cms.about = cmsData.find(s => s.key === 'about_content')?.value || this.cms.about;
+                        this.cms.order_steps = cmsData.find(s => s.key === 'order_content')?.value || [];
+                        this.cms.sliders = cmsData.find(s => s.key === 'slider_configs')?.value || this.cms.sliders;
+                        this.cms.global = cmsData.find(s => s.key === 'global_settings')?.value || this.cms.global;
+                    } catch (error) {
+                        console.error('Fetch error:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async saveCMS(key, val, silent = false) {
+                    try {
+                        const { error } = await supabaseClient
+                            .from('p20_settings')
+                            .upsert({ key: key, value: val }, { onConflict: 'key' });
+                        if (error) throw error;
+                        if (!silent) alert('Konten berhasil diperbarui!');
+                    } catch (error) {
+                        console.error('Save error:', error);
+                        alert('Gagal menyimpan: ' + error.message);
+                    }
+                },
+
+                async saveAllCMS() {
+                    this.isSubmitting = true;
+                    try {
+                        await Promise.all([
+                            this.saveCMS('hero_content', this.cms.hero, true),
+                            this.saveCMS('about_content', this.cms.about, true),
+                            this.saveCMS('order_content', this.cms.order_steps, true),
+                            this.saveCMS('slider_configs', this.cms.sliders, true),
+                            this.saveCMS('global_settings', this.cms.global, true),
+                            this.saveSettings() // Already silent from previous fix
+                        ]);
+                        alert('Semua perubahan website berhasil disinkronkan!');
+                    } catch (err) {
+                        console.error('Sync all error:', err);
+                        alert('Terjadi kesalahan saat sinkronisasi.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                openProductModal(product = null) {
+                    if (product) {
+                        this.isEditing = true;
+                        this.editingProduct = { ...product };
+                    } else {
+                        this.isEditing = false;
+                        this.editingProduct = { id: null, name: '', category_id: '', price: 0, stock: 10, image_url: '' };
+                    }
+                    this.productModal = true;
+                },
+
+                async handleFileUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    this.uploadingImage = true;
+                    try {
+                        const compressedFile = await this.compressImage(file);
+                        const fileName = `prod-${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+                        const { data, error } = await supabaseClient.storage
+                            .from('p20_images')
+                            .upload(fileName, compressedFile);
+
+                        if (error) throw error;
+
+                        const { data: publicData } = supabaseClient.storage
+                            .from('p20_images')
+                            .getPublicUrl(fileName);
+
+                        this.editingProduct.image_url = publicData.publicUrl;
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        alert('Gagal upload: ' + error.message);
+                    } finally {
+                        this.uploadingImage = false;
+                    }
+                },
+
+                async uploadCMSImage(event, targetArray) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    this.uploadingImage = true;
+                    try {
+                        const compressedFile = await this.compressImage(file);
+                        const fileName = `cms-${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+                        
+                        const { data, error } = await supabaseClient.storage
+                            .from('p20_images')
+                            .upload(fileName, compressedFile);
+
+                        if (error) throw error;
+
+                        const { data: publicData } = supabaseClient.storage
+                            .from('p20_images')
+                            .getPublicUrl(fileName);
+
+                        targetArray.push(publicData.publicUrl);
+                        event.target.value = ''; // Reset input
+                    } catch (error) {
+                        console.error('CMS Upload error:', error);
+                        alert('Gagal upload gambar CMS: ' + error.message);
+                    } finally {
+                        this.uploadingImage = false;
+                    }
+                },
+
+                compressImage(file) {
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+                        reader.onload = (event) => {
+                            const img = new Image();
+                            img.src = event.target.result;
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                let width = img.width;
+                                let height = img.height;
+
+                                // Max dimensions
+                                const MAX_WIDTH = 1200;
+                                const MAX_HEIGHT = 1200;
+
+                                if (width > height) {
+                                    if (width > MAX_WIDTH) {
+                                        height *= MAX_WIDTH / width;
+                                        width = MAX_WIDTH;
+                                    }
+                                } else {
+                                    if (height > MAX_HEIGHT) {
+                                        width *= MAX_HEIGHT / height;
+                                        height = MAX_HEIGHT;
+                                    }
+                                }
+
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, width, height);
+
+                                // Compress with quality 0.7 to ensure < 1MB
+                                canvas.toBlob((blob) => {
+                                    resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                                }, 'image/jpeg', 0.7);
+                            };
+                        };
+                    });
+                },
+
+                async saveProduct() {
+                    this.isSubmitting = true;
+                    try {
+                        const payload = {
+                            name: this.editingProduct.name,
+                            category_id: this.editingProduct.category_id,
+                            price: this.editingProduct.price,
+                            stock: this.editingProduct.stock,
+                            image_url: this.editingProduct.image_url
+                        };
+
+                        if (this.isEditing) {
+                            await supabaseClient.from('p20_products').update(payload).eq('id', this.editingProduct.id);
+                        } else {
+                            await supabaseClient.from('p20_products').insert([payload]);
+                        }
+
+                        await this.fetchData();
+                        this.productModal = false;
+                    } catch (error) {
+                        console.error('Save product error:', error);
+                        alert('Gagal menyimpan produk: ' + error.message);
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                async deleteProduct(id) {
+                    if (!confirm('Hapus produk ini secara permanen?')) return;
+                    try {
+                        await supabaseClient.from('p20_products').delete().eq('id', id);
+                        await this.fetchData();
+                    } catch (error) {
+                        console.error('Delete error:', error);
+                    }
+                },
+
+                async updateOrderStatus(id, status) {
+                    try {
+                        await supabaseClient.from('p20_orders').update({ status }).eq('id', id);
+                        await this.fetchData();
+                    } catch (error) {
+                        console.error('Update status error:', error);
+                    }
+                },
+
+                async saveSettings() {
+                    try {
+                        const { error } = await supabaseClient
+                            .from('p20_settings')
+                            .upsert({
+                                key: 'store_identity',
+                                value: this.settings
+                            }, { onConflict: 'key' });
+                        if (error) throw error;
+                        // No alert here to avoid double alerts when called from saveAllCMS or the combined button
+                    } catch (error) {
+                        console.error('Save settings error:', error);
+                        alert('Gagal menyimpan identitas: ' + error.message);
+                    }
+                },
+
+                async updatePassword() {
+                    if (!this.newPassword) return;
+                    try {
+                        await supabaseClient.from('p20_settings').update({ value: this.newPassword }).eq('key', 'admin_password');
+                        alert('PIN Keamanan berhasil diubah!');
+                        this.newPassword = '';
+                    } catch (error) {
+                        console.error('Update password error:', error);
+                    }
+                },
+
+                formatPrice(val) {
+                    return new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0
+                    }).format(val);
+                },
+
+                getCategoryName(catId) {
+                    return this.categories.find(c => c.id === catId)?.name || 'Katalog';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
