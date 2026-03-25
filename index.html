@@ -689,6 +689,51 @@
         </div>
     </div>
 
+    <!-- Product Detail Modal -->
+    <div x-cloak x-show="productDetailOpen" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" @click="productDetailOpen = false"></div>
+        <div x-show="productDetailOpen" 
+             x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             class="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col md:flex-row">
+            
+            <!-- Close Button -->
+            <button @click="productDetailOpen = false" class="absolute top-6 right-6 z-10 p-2 bg-white/80 backdrop-blur rounded-full text-slate-400 hover:text-slate-600 shadow-sm transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <!-- Product Image -->
+            <div class="w-full md:w-1/2 h-64 md:h-auto bg-slate-50 flex items-center justify-center p-8">
+                <img :src="selectedProduct?.image_url" class="w-full h-full object-contain rounded-2xl drop-shadow-2xl">
+            </div>
+
+            <!-- Product Info -->
+            <div class="w-full md:w-1/2 p-8 flex flex-col justify-center">
+                <div class="space-y-4">
+                    <span class="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-black uppercase tracking-widest" x-text="getCategoryName(selectedProduct?.category_id)"></span>
+                    <h2 class="text-3xl font-black text-slate-800 leading-tight" x-text="selectedProduct?.name"></h2>
+                    <p class="text-2xl font-black text-indigo-600" x-text="formatPrice(selectedProduct?.price || 0)"></p>
+                    
+                    <div class="pt-4 space-y-3">
+                        <button @click="addToCart(selectedProduct); productDetailOpen = false" 
+                                class="w-full flex justify-center items-center px-6 py-4 bg-indigo-600 text-white rounded-2xl text-lg font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                            Tambah ke Keranjang
+                        </button>
+                        <button @click="shareProduct(selectedProduct)" 
+                                class="w-full flex justify-center items-center px-6 py-4 border-2 border-slate-100 rounded-2xl text-slate-600 font-bold hover:bg-slate-50 transition-all active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                            Bagikan Produk
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tentang Kami Section -->
     <section id="tentang" class="py-16 md:py-24 px-6 bg-slate-50/50 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-30 -z-10 translate-x-1/2 -translate-y-1/2"></div>
@@ -888,11 +933,13 @@
                 isSubmitting: false,
                 cartOpen: false,
                 checkoutOpen: false,
+                productDetailOpen: false,
                 checkoutStep: 1,
                 activeCategory: 'all',
                 cart: [],
                 categories: [],
                 products: [],
+                selectedProduct: null,
                 settings: {},
                 paymentSettings: {},
                 orderData: {
@@ -942,6 +989,21 @@
                             this.displayLimit = 6;
                         } else {
                             this.displayLimit = 8;
+                        }
+
+                        // Handle shared product link
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const productId = urlParams.get('p');
+                        if (productId) {
+                            // Wait for data to be loaded then find product
+                            setTimeout(() => {
+                                const product = this.products.find(p => p.id === productId);
+                                if (product) {
+                                    this.openProductDetail(product);
+                                    // Clean up URL without refreshing
+                                    window.history.replaceState({}, document.title, window.location.pathname);
+                                }
+                            }, 500);
                         }
 
                         this.loading = false;
@@ -996,18 +1058,24 @@
 
                 shareProduct(product) {
                     const text = `Cek produk keren ini di ${this.settings.name || 'UMKM Permata 20'}: ${product.name} - ${this.formatPrice(product.price)}`;
-                    const url = window.location.href;
+                    // Use Supabase Edge Function URL for dynamic social thumbnails
+                    const shareUrl = `https://uavwpmvpxgckrnubnqex.functions.supabase.co/share-product?p=${product.id}`;
 
                     if (navigator.share) {
                         navigator.share({
                             title: product.name,
                             text: text,
-                            url: url
+                            url: shareUrl
                         }).catch(err => console.log('Error sharing', err));
                     } else {
-                        const waUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+                        const waUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + shareUrl)}`;
                         window.open(waUrl, '_blank');
                     }
+                },
+
+                openProductDetail(product) {
+                    this.selectedProduct = { ...product };
+                    this.productDetailOpen = true;
                 },
 
                 removeFromCart(id) {
