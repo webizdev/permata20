@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/p/:id",
+      "destination": "https://uavwpmvpxgckrnubnqex.functions.supabase.co/share-product?p=:id",
+      "permanent": false
+    }
+  ]
+}

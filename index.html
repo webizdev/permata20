@@ -1060,8 +1060,8 @@
                     const storeName = this.settings.name || 'Permata 20';
                     const text = `*${product.name}*\n\nDapatkan ${product.name} seharga ${this.formatPrice(product.price)} hanya di ${storeName}.\n\nCek detail produk di sini:`;
                     
-                    // Use Supabase Edge Function URL for dynamic social thumbnails
-                    const shareUrl = `https://uavwpmvpxgckrnubnqex.functions.supabase.co/share-product?p=${product.id}`;
+                    // Use branded shortened URL (handled by vercel.json redirects)
+                    const shareUrl = `${window.location.origin}/p/${product.id}`;
 
                     if (navigator.share) {
                         navigator.share({
