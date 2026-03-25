@@ -577,6 +577,72 @@
 
         <!-- Settings Tab -->
         <div x-show="activeTab === 'settings'" class="space-y-8 max-w-2xl">
+            <!-- Payment Info -->
+            <div class="glass p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] space-y-6 border-white shadow-xl">
+                <h4 class="text-xl font-black flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    </div>
+                    <span>Informasi Pembayaran</span>
+                </h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Bank</label>
+                        <input type="text" x-model="cms.payment.bank_name" placeholder="Contoh: BCA / Mandiri" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nomor Rekening</label>
+                        <input type="text" x-model="cms.payment.account_number" placeholder="000000000" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold">
+                    </div>
+                    <div class="col-span-full space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Atas Nama (Pemilik)</label>
+                        <input type="text" x-model="cms.payment.account_holder" placeholder="Nama Pemilik Rekening" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none font-bold">
+                    </div>
+                    
+                    <!-- QRIS Upload -->
+                    <div class="col-span-full space-y-4">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Upload Kode QRIS</label>
+                        <div class="flex flex-wrap gap-4 items-end">
+                            <div class="relative w-32 h-32 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden bg-white">
+                                <template x-if="cms.payment.qris_url">
+                                    <img :src="cms.payment.qris_url" class="w-full h-full object-contain p-2">
+                                </template>
+                                <template x-if="!cms.payment.qris_url">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                </template>
+                            </div>
+                            <div class="flex-1 min-w-[200px] space-y-3">
+                                <input type="file" @change="async (e) => { 
+                                    const file = e.target.files[0];
+                                    if(!file) return;
+                                    uploadingImage = true;
+                                    try {
+                                        const compressed = await compressImage(file);
+                                        const fileName = `qris-${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+                                        const { data, error } = await supabaseClient.storage.from('p20_images').upload(fileName, compressed);
+                                        if(error) throw error;
+                                        const { data: p } = supabaseClient.storage.from('p20_images').getPublicUrl(fileName);
+                                        cms.payment.qris_url = p.publicUrl;
+                                    } catch(err) { alert(err.message); } finally { uploadingImage = false; }
+                                }" class="hidden" id="qris-upload">
+                                <label for="qris-upload" class="inline-flex items-center px-6 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-bold cursor-pointer hover:bg-indigo-100 transition-all text-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                    Pilih File QRIS
+                                </label>
+                                <p class="text-[10px] text-slate-400 font-medium">Format: JPG/PNG. Maksimal 1MB.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <button @click="saveCMS('payment_info', cms.payment)" class="px-8 py-4 gradient-bg text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:scale-[1.05] active:scale-95 transition-all text-sm">
+                        Simpan Info Pembayaran
+                    </button>
+                </div>
+            </div>
+
             <div class="glass p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] space-y-6 border-white shadow-xl">
                 <h4 class="text-xl font-black flex items-center space-x-3">
                     <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center">
@@ -712,6 +778,12 @@
                         about: { mode: 'fade', speed: 4000 }
                     },
                     global: { whatsapp: '', instagram: '', tiktok: '', maps_link: '' },
+                    payment: {
+                        bank_name: '',
+                        account_number: '',
+                        account_holder: '',
+                        qris_url: ''
+                    },
                     order_steps: []
                 },
 
@@ -779,6 +851,7 @@
                         this.cms.order_steps = cmsData.find(s => s.key === 'order_content')?.value || [];
                         this.cms.sliders = cmsData.find(s => s.key === 'slider_configs')?.value || this.cms.sliders;
                         this.cms.global = cmsData.find(s => s.key === 'global_settings')?.value || this.cms.global;
+                        this.cms.payment = cmsData.find(s => s.key === 'payment_info')?.value || this.cms.payment;
                     } catch (error) {
                         console.error('Fetch error:', error);
                     } finally {
@@ -808,6 +881,7 @@
                             this.saveCMS('order_content', this.cms.order_steps, true),
                             this.saveCMS('slider_configs', this.cms.sliders, true),
                             this.saveCMS('global_settings', this.cms.global, true),
+                            this.saveCMS('payment_info', this.cms.payment, true),
                             this.saveSettings() // Already silent from previous fix
                         ]);
                         alert('Semua perubahan website berhasil disinkronkan!');

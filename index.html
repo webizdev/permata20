@@ -548,7 +548,7 @@
                             </div>
                             <span class="block font-bold">Transfer Bank</span>
                             <span class="text-xs text-slate-500"
-                                x-text="paymentSettings.transfer ? paymentSettings.transfer.bank : 'BCA, Mandiri, BRI'"></span>
+                                x-text="paymentSettings.bank_name || 'BCA, Mandiri, BRI'"></span>
                         </button>
                         <button @click="orderData.payment = 'qris'"
                             :class="orderData.payment === 'qris' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-500' : 'border-slate-200 bg-white'"
@@ -567,23 +567,23 @@
                     </div>
 
                     <!-- Payment Details Display -->
-                    <div x-show="orderData.payment === 'transfer' && paymentSettings.transfer"
+                    <div x-show="orderData.payment === 'transfer' && paymentSettings.bank_name"
                         class="bg-slate-900 text-white p-6 rounded-2xl space-y-4 shadow-xl">
                         <div class="flex justify-between items-center border-b border-white/10 pb-4">
                             <span class="text-slate-400">Bank</span>
-                            <span class="font-bold" x-text="paymentSettings.transfer.bank"></span>
+                            <span class="font-bold" x-text="paymentSettings.bank_name"></span>
                         </div>
                         <div class="flex justify-between items-center border-b border-white/10 pb-4">
                             <span class="text-slate-400">Nama Rekening</span>
-                            <span class="font-bold" x-text="paymentSettings.transfer.account_name"></span>
+                            <span class="font-bold" x-text="paymentSettings.account_holder"></span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-slate-400 text-sm">No. Rekening</span>
                             <div class="flex items-center space-x-2" x-data="{ copied: false }">
                                 <span class="font-bold text-lg tracking-widest"
-                                    x-text="paymentSettings.transfer.account_no"></span>
+                                    x-text="paymentSettings.account_number"></span>
                                 <button
-                                    @click="navigator.clipboard.writeText(paymentSettings.transfer.account_no); copied = true; setTimeout(() => copied = false, 2000)"
+                                    @click="navigator.clipboard.writeText(paymentSettings.account_number); copied = true; setTimeout(() => copied = false, 2000)"
                                     class="p-2 hover:bg-white/10 rounded-lg transition-colors group relative"
                                     title="Salin Nomor Rekening">
                                     <svg x-show="!copied" xmlns="http://www.w3.org/2000/svg"
@@ -608,9 +608,16 @@
                     <div x-show="orderData.payment === 'qris'"
                         class="flex flex-col items-center justify-center p-6 bg-white border-2 border-dashed border-slate-200 rounded-2xl">
                         <div
-                            class="w-48 h-48 bg-white border border-slate-100 flex items-center justify-center rounded-2xl relative overflow-hidden shadow-sm">
-                            <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + (paymentSettings.qris ? paymentSettings.qris.qr_data : 'P20-PAYMENT')"
-                                alt="QRIS Code" class="w-full h-full object-contain p-2">
+                            class="w-64 h-64 bg-white border border-slate-100 flex items-center justify-center rounded-2xl relative overflow-hidden shadow-sm">
+                            <template x-if="paymentSettings.qris_url">
+                                <img :src="paymentSettings.qris_url" alt="QRIS Code" class="w-full h-full object-contain p-2">
+                            </template>
+                            <template x-if="!paymentSettings.qris_url">
+                                <div class="text-center p-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-200 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                                    <p class="text-[10px] text-slate-400">QRIS belum tersedia</p>
+                                </div>
+                            </template>
                         </div>
                         <p class="mt-4 text-sm text-slate-500 font-medium">Scan QR Code ini untuk membayar</p>
                     </div>
@@ -921,7 +928,7 @@
 
                         const settingsData = setRes.data || [];
                         this.settings = settingsData.find(s => s.key === 'store_identity')?.value || {};
-                        this.paymentSettings = settingsData.find(s => s.key === 'payment_methods')?.value || {};
+                        this.paymentSettings = settingsData.find(s => s.key === 'payment_info')?.value || {};
                         
                         // CMS data mapping
                         this.cms.hero = settingsData.find(s => s.key === 'hero_content')?.value || {};
