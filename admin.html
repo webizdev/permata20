@@ -123,41 +123,42 @@
                 </a>
             </div>
         </aside>
-
-        <!-- Mobile Bottom Navigation -->
-        <nav x-show="isLoggedIn" class="lg:hidden fixed bottom-0 inset-x-0 glass border-t border-slate-200/50 z-50 flex justify-around items-center px-4 py-3 pb-6">
-            <button @click="activeTab = 'products'" :class="activeTab === 'products' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center space-y-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-tight">Produk</span>
-            </button>
-            <button @click="activeTab = 'orders'" :class="activeTab === 'orders' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center space-y-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-tight">Pesanan</span>
-            </button>
-            <button @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center space-y-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-tight">Profil</span>
-            </button>
-            <button @click="activeTab = 'cms'" :class="activeTab === 'cms' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center space-y-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.123 3.877a2.121 2.121 0 013 3l-9.939 9.94c-.1.1-.23.17-.37.2l-4 1a.5.5 0 01-.6-.6l1-4c.03-.14.1-.27.2-.37l9.94-9.939z" /></svg>
-                <span class="text-[10px] font-bold uppercase tracking-tight">Konten</span>
-            </button>
-        </nav>
     </template>
 
+    <!-- Mobile Floating Bottom Navigation -->
+    <nav x-show="isLoggedIn" x-cloak class="lg:hidden fixed bottom-6 inset-x-4 glass border border-white/50 z-[100] flex justify-around items-center px-2 py-4 rounded-[2rem] shadow-2xl shadow-indigo-100/50">
+        <button @click="activeTab = 'products'" :class="activeTab === 'products' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center flex-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+            <span class="text-[9px] font-black uppercase tracking-tighter mt-1">Produk</span>
+        </button>
+        <button @click="activeTab = 'orders'" :class="activeTab === 'orders' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center flex-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+            <span class="text-[9px] font-black uppercase tracking-tighter mt-1">Pesanan</span>
+        </button>
+        <button @click="activeTab = 'cms'" :class="activeTab === 'cms' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center flex-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.123 3.877a2.121 2.121 0 013 3l-9.939 9.94c-.1.1-.23.17-.37.2l-4 1a.5.5 0 01-.6-.6l1-4c.03-.14.1-.27.2-.37l9.94-9.939z" /></svg>
+            <span class="text-[9px] font-black uppercase tracking-tighter mt-1">Konten</span>
+        </button>
+        <button @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'text-indigo-600' : 'text-slate-400'" class="flex flex-col items-center flex-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <span class="text-[9px] font-black uppercase tracking-tighter mt-1">Profil</span>
+        </button>
+    </nav>
+
+
     <!-- Main Content -->
-    <main class="flex-1 lg:ml-64 p-4 md:p-8 pb-24 lg:pb-8" x-show="isLoggedIn" x-cloak>
+    <main class="flex-1 lg:ml-64 p-3 md:p-8 pb-32 lg:pb-8" x-show="isLoggedIn" x-cloak>
         
         <!-- Header -->
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-                <h2 class="text-4xl font-black tracking-tight" x-text="tabTitle"></h2>
-                <p class="text-slate-500 font-medium mt-1" x-text="tabDesc"></p>
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 md:mb-8">
+            <div class="px-1">
+                <h2 class="text-2xl md:text-4xl font-black tracking-tight" x-text="tabTitle"></h2>
+                <p class="text-xs md:text-base text-slate-500 font-medium mt-0.5" x-text="tabDesc"></p>
             </div>
             
             <template x-if="activeTab === 'products'">
-                <button @click="openProductModal()" class="px-8 py-4 gradient-bg text-white rounded-2xl font-bold shadow-xl shadow-indigo-200 hover:scale-[1.05] active:scale-95 transition-all flex items-center space-x-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                <button @click="openProductModal()" class="w-full md:w-auto px-6 py-3 md:px-8 md:py-4 gradient-bg text-white rounded-2xl font-bold shadow-xl shadow-indigo-200 hover:scale-[1.05] active:scale-95 transition-all flex items-center justify-center space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     <span>Tambah Produk</span>
                 </button>
             </template>
@@ -170,23 +171,23 @@
                 <p class="mt-4 text-slate-500 font-medium">Sinkronisasi produk...</p>
             </div>
             
-            <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
                 <template x-for="product in products" :key="product.id">
-                    <div class="glass p-6 rounded-[2.5rem] flex items-center space-x-6 group hover:shadow-2xl transition-all duration-500 border-white">
-                        <div class="w-24 h-24 rounded-3xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-inner">
+                    <div class="glass p-3 md:p-6 rounded-3xl md:rounded-[2.5rem] flex items-center space-x-4 md:space-x-6 group hover:shadow-2xl transition-all duration-500 border-white">
+                        <div class="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-3xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-inner">
                             <img :src="product.image_url" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="font-extrabold text-slate-800 truncate text-lg" x-text="product.name"></h4>
-                            <p class="text-base font-black text-indigo-600 mt-1" x-text="formatPrice(product.price)"></p>
-                            <p class="text-[10px] font-black text-slate-400 mt-2 uppercase tracking-[0.2em]" x-text="getCategoryName(product.category_id)"></p>
+                            <h4 class="font-extrabold text-slate-800 truncate text-base md:text-lg" x-text="product.name"></h4>
+                            <p class="text-sm md:text-base font-black text-indigo-600 mt-0.5 md:mt-1" x-text="formatPrice(product.price)"></p>
+                            <p class="text-[8px] md:text-[10px] font-black text-slate-400 mt-1 md:mt-2 uppercase tracking-[0.2em]" x-text="getCategoryName(product.category_id)"></p>
                         </div>
-                        <div class="flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 transition-transform duration-500">
-                            <button @click="openProductModal(product)" class="p-3 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white rounded-2xl transition-all shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.123 3.877a2.121 2.121 0 013 3l-9.939 9.94c-.1.1-.23.17-.37.2l-4 1a.5.5 0 01-.6-.6l1-4c.03-.14.1-.27.2-.37l9.94-9.939z" /></svg>
+                        <div class="flex flex-col space-y-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity md:translate-x-4 md:group-hover:translate-x-0 transition-transform duration-500">
+                            <button @click="openProductModal(product)" class="p-2 md:p-3 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white rounded-xl md:rounded-2xl transition-all shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.123 3.877a2.121 2.121 0 013 3l-9.939 9.94c-.1.1-.23.17-.37.2l-4 1a.5.5 0 01-.6-.6l1-4c.03-.14.1-.27.2-.37l9.94-9.939z" /></svg>
                             </button>
-                            <button @click="deleteProduct(product.id)" class="p-3 text-rose-500 bg-rose-50 hover:bg-rose-600 hover:text-white rounded-2xl transition-all shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            <button @click="deleteProduct(product.id)" class="p-2 md:p-3 text-rose-500 bg-rose-50 hover:bg-rose-600 hover:text-white rounded-xl md:rounded-2xl transition-all shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                         </div>
                     </div>
@@ -208,7 +209,8 @@
                 <p class="text-slate-400 font-bold text-lg">Hening sejenak... Belum ada pesanan.</p>
             </div>
 
-            <div x-show="!loading && orders.length > 0" class="glass rounded-[2.5rem] overflow-hidden border-white shadow-2xl">
+            <!-- Desktop Order Table -->
+            <div x-show="!loading && orders.length > 0" class="hidden md:block glass rounded-[2.5rem] overflow-hidden border-white shadow-2xl">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -255,20 +257,56 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Mobile Order Cards -->
+            <div x-show="!loading && orders.length > 0" class="md:hidden space-y-4">
+                <template x-for="order in orders" :key="order.id">
+                    <div class="glass p-5 rounded-[2rem] border-white space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-black text-slate-800" x-text="order.order_id"></div>
+                                <div class="text-[10px] font-bold text-slate-400 mt-1 uppercase" x-text="new Date(order.created_at).toLocaleString('id-ID')"></div>
+                            </div>
+                            <span :class="{
+                                'bg-amber-100 text-amber-600': order.status === 'Diproses',
+                                'bg-green-100 text-green-600': order.status === 'Selesai',
+                                'bg-rose-100 text-rose-600': order.status === 'Dibatalkan'
+                            }" class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider" x-text="order.status"></span>
+                        </div>
+                        <div class="p-3 bg-slate-50/50 rounded-2xl flex justify-between items-center">
+                            <div>
+                                <div class="font-extrabold text-sm text-slate-800" x-text="order.customer_name"></div>
+                                <div class="text-xs font-bold text-indigo-500" x-text="order.whatsapp"></div>
+                            </div>
+                            <div class="font-black text-indigo-600" x-text="formatPrice(order.total_price)"></div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="updateOrderStatus(order.id, 'Selesai')" class="flex-1 py-3 flex items-center justify-center space-x-2 text-green-600 bg-green-50 rounded-xl font-bold text-xs">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                <span>Selesai</span>
+                            </button>
+                            <button @click="updateOrderStatus(order.id, 'Dibatalkan')" class="flex-1 py-3 flex items-center justify-center space-x-2 text-rose-500 bg-rose-50 rounded-xl font-bold text-xs">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                <span>Batalkan</span>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
 
         <!-- CMS Tab -->
         <div x-show="activeTab === 'cms'" class="space-y-8 max-w-5xl">
             <!-- Hero Section Editor -->
-            <div class="glass p-8 rounded-[3rem] border-white shadow-xl space-y-8">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-black flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <div class="glass p-4 md:p-8 rounded-3xl md:rounded-[3rem] border-white shadow-xl space-y-6 md:space-y-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h3 class="text-xl md:text-2xl font-black flex items-center space-x-3">
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         </div>
                         <span>Editor Hero Section</span>
                     </h3>
-                    <button @click="saveCMS('hero_content', cms.hero)" class="px-6 py-3 gradient-bg text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 flex items-center space-x-2">
+                    <button @click="saveCMS('hero_content', cms.hero)" class="w-full md:w-auto px-6 py-3 md:py-3.5 gradient-bg text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 flex items-center justify-center space-x-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         <span>Simpan Perubahan Hero</span>
                     </button>
@@ -346,15 +384,15 @@
             </div>
 
             <!-- About Section Editor -->
-            <div class="glass p-8 rounded-[3rem] border-white shadow-xl space-y-8">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-black flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div class="glass p-4 md:p-8 rounded-3xl md:rounded-[3rem] border-white shadow-xl space-y-6 md:space-y-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h3 class="text-xl md:text-2xl font-black flex items-center space-x-3">
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <span>Editor Tentang Kami</span>
                     </h3>
-                    <button @click="saveCMS('about_content', cms.about)" class="px-6 py-3 bg-amber-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-100 flex items-center space-x-2">
+                    <button @click="saveCMS('about_content', cms.about)" class="w-full md:w-auto px-6 py-3 md:py-3.5 bg-amber-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-100 flex items-center justify-center space-x-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         <span>Simpan Perubahan About</span>
                     </button>
@@ -375,7 +413,7 @@
                     </div>
 
                     <!-- Slider Configs -->
-                    <div class="p-6 bg-slate-50 rounded-[2rem] space-y-4">
+                    <div class="p-4 md:p-6 bg-slate-50 rounded-2xl md:rounded-[2rem] space-y-4">
                         <h4 class="font-black text-slate-700 flex items-center space-x-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             <span>Konfigurasi Galeri</span>
@@ -447,15 +485,15 @@
             </div>
 
             <!-- Global & Social Footer Settings -->
-            <div class="glass p-8 rounded-[3rem] border-white shadow-xl space-y-8">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-black flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+            <div class="glass p-4 md:p-8 rounded-3xl md:rounded-[3rem] border-white shadow-xl space-y-6 md:space-y-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h3 class="text-xl md:text-2xl font-black flex items-center space-x-3">
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
                         </div>
                         <span>Pengaturan Global & Footer</span>
                     </h3>
-                    <button @click="await Promise.all([saveCMS('global_settings', cms.global, true), saveSettings()]); alert('Seluruh pengaturan footer berhasil diperbarui!')" class="px-6 py-3 bg-emerald-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-100 flex items-center space-x-2">
+                    <button @click="await Promise.all([saveCMS('global_settings', cms.global, true), saveSettings()]); alert('Seluruh pengaturan footer berhasil diperbarui!')" class="w-full md:w-auto px-6 py-3 md:py-3.5 bg-emerald-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-100 flex items-center justify-center space-x-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         <span>Simpan Pengaturan Footer</span>
                     </button>
@@ -490,15 +528,15 @@
             </div>
 
             <!-- Cara Order Editor -->
-            <div class="glass p-8 rounded-[3rem] border-white shadow-xl space-y-8">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-black flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+            <div class="glass p-4 md:p-8 rounded-3xl md:rounded-[3rem] border-white shadow-xl space-y-6 md:space-y-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h3 class="text-xl md:text-2xl font-black flex items-center space-x-3">
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                         </div>
                         <span>Editor Cara Order</span>
                     </h3>
-                    <button @click="saveCMS('order_content', cms.order_steps)" class="px-6 py-3 gradient-bg text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 flex items-center space-x-2">
+                    <button @click="saveCMS('order_content', cms.order_steps)" class="w-full md:w-auto px-6 py-3 md:py-3.5 gradient-bg text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 flex items-center justify-center space-x-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                         <span>Simpan Perubahan Order</span>
                     </button>
@@ -506,7 +544,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <template x-for="(step, index) in cms.order_steps" :key="index">
-                        <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
+                        <div class="p-4 md:p-6 bg-slate-50 rounded-2xl md:rounded-[2rem] border border-slate-100 space-y-4">
                             <div class="flex items-center justify-between">
                                 <span class="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold" x-text="index + 1"></span>
                                 <button @click="cms.order_steps.splice(index, 1)" class="text-rose-500 p-2 hover:bg-rose-50 rounded-lg">
@@ -531,9 +569,9 @@
 
             <!-- Save Global Config button at the very bottom -->
              <div class="flex items-center justify-center pt-8">
-                 <button @click="saveAllCMS()" class="px-12 py-5 gradient-bg text-white rounded-[2rem] font-black text-lg shadow-2xl shadow-indigo-200 hover:scale-[1.05] active:scale-95 transition-all">
-                     Sync Semua Perubahan Website
-                 </button>
+                  <button @click="saveAllCMS()" class="w-full md:w-auto px-12 py-5 gradient-bg text-white rounded-[2rem] font-black text-lg shadow-2xl shadow-indigo-200 hover:scale-[1.05] active:scale-95 transition-all">
+                      Sync Semua Perubahan Website
+                  </button>
              </div>
         </div>
 
